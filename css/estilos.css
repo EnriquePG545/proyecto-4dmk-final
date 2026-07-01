@@ -5801,3 +5801,36 @@ body.app-instalada .ocultar-en-app {
         width: 100%;
     }
 }
+
+/* =========================================================
+   AJUSTES DE RENDIMIENTO
+   ========================================================= */
+
+.cursor-glow,
+.particles,
+.particle,
+.sparkle,
+.rgb-ambiente,
+.rgb-lines,
+.rgb-line,
+.hero-wave {
+    display: none !important;
+}
+
+body::before,
+.hero::before,
+.hero::after,
+.hero-card,
+.whatsapp-float {
+    animation: none !important;
+}
+
+.hero-card,
+.servicio-card,
+.timeline-item,
+.beneficios-grid div,
+.contacto-card,
+.galeria-item img,
+.btn {
+    will-change: auto;
+}
