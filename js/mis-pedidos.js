@@ -133,6 +133,8 @@ function crearPedidoHTML(pedido) {
                 </span>
             </div>
 
+            ${crearProgresoEstado(estado)}
+
             <div class="pedido-cliente-body">
                 <p><strong>Prenda:</strong> ${pedido.tipo_prenda || "-"}</p>
                 <p><strong>Cantidad:</strong> ${pedido.cantidad || "-"}</p>
@@ -145,6 +147,48 @@ function crearPedidoHTML(pedido) {
                 <p><strong>Descripción:</strong> ${pedido.descripcion || "Sin descripción"}</p>
             </div>
         </article>
+    `;
+}
+
+function crearProgresoEstado(estadoActual) {
+    const estadoNormalizado = normalizarEstado(estadoActual || "Pendiente");
+
+    if (estadoNormalizado === "cancelado") {
+        return `
+            <div class="pedido-progreso pedido-progreso-cancelado">
+                <div class="pedido-progreso-paso activo">
+                    <span><i class="fa-solid fa-xmark"></i></span>
+                    <p>Cancelado</p>
+                </div>
+            </div>
+        `;
+    }
+
+    const pasos = [
+        { estado: "pendiente", texto: "Pendiente" },
+        { estado: "revisado", texto: "Revisado" },
+        { estado: "cotizado", texto: "Cotizado" },
+        { estado: "en-proceso", texto: "En proceso" },
+        { estado: "finalizado", texto: "Finalizado" }
+    ];
+
+    const indiceEncontrado = pasos.findIndex(paso => paso.estado === estadoNormalizado);
+    const indiceActual = indiceEncontrado >= 0 ? indiceEncontrado : 0;
+
+    return `
+        <div class="pedido-progreso">
+            ${pasos.map(function (paso, indice) {
+                const claseActiva = indice <= indiceActual ? "activo" : "";
+                const icono = indice < indiceActual ? "fa-check" : "fa-circle";
+
+                return `
+                    <div class="pedido-progreso-paso ${claseActiva}">
+                        <span><i class="fa-solid ${icono}"></i></span>
+                        <p>${paso.texto}</p>
+                    </div>
+                `;
+            }).join("")}
+        </div>
     `;
 }
 

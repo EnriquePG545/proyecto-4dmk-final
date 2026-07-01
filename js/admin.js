@@ -22,6 +22,7 @@ let pedidos = [];
 let pedidosFiltrados = [];
 let graficoMensual = null;
 let canalPedidosAdmin = null;
+let usuarioAdminActual = null;
 
 document.addEventListener("DOMContentLoaded", async () => {
     await verificarSesionAdmin();
@@ -38,6 +39,7 @@ async function verificarSesionAdmin() {
     }
 
     const usuario = sessionData.session.user;
+    usuarioAdminActual = usuario;
     adminCorreo.textContent = usuario.email;
 
     const { data: adminData, error: adminError } = await supabaseClient
@@ -245,6 +247,14 @@ function activarEventosTabla() {
 async function actualizarEstadoPedido(idPedido, nuevoEstado) {
     mostrarMensaje("Actualizando estado...", "info");
 
+    const pedidoAnterior = pedidos.find(pedido => String(pedido.id_pedido) === String(idPedido));
+    const estadoAnterior = pedidoAnterior?.estado || null;
+
+    if (estadoAnterior === nuevoEstado) {
+        mostrarMensaje("El pedido ya tenia ese estado.", "info");
+        return;
+    }
+
     const { error } = await supabaseClient
         .from("pedidos_cotizacion")
         .update({ estado: nuevoEstado })
@@ -255,6 +265,8 @@ async function actualizarEstadoPedido(idPedido, nuevoEstado) {
         mostrarMensaje("No se pudo actualizar el estado.", "error");
         return;
     }
+
+    await registrarHistorialEstado(idPedido, estadoAnterior, nuevoEstado);
 
     pedidos = pedidos.map(pedido => {
         if (String(pedido.id_pedido) === String(idPedido)) {
@@ -288,7 +300,66 @@ async function actualizarEstadoPedido(idPedido, nuevoEstado) {
 }
 }
 
-function abrirDetallePedido(idPedido) {
+async function registrarHistorialEstado(idPedido, estadoAnterior, estadoNuevo) {
+    const { error } = await supabaseClient
+        .from("historial_estados_cotizacion")
+        .insert({
+            id_pedido: Number(idPedido),
+            estado_anterior: estadoAnterior,
+            estado_nuevo: estadoNuevo,
+            cambiado_por: usuarioAdminActual?.id || null
+        });
+
+    if (error) {
+        console.warn("No se pudo registrar el historial de estado:", error);
+    }
+}
+
+async function cargarHistorialPedido(idPedido) {
+    const { data, error } = await supabaseClient
+        .from("historial_estados_cotizacion")
+        .select("*")
+        .eq("id_pedido", Number(idPedido))
+        .order("creado_at", { ascending: false });
+
+    if (error) {
+        console.warn("No se pudo cargar el historial de estado:", error);
+        return `
+            <div class="historial-estados">
+                <h3>Historial de estados</h3>
+                <p class="historial-vacio">No se pudo cargar el historial.</p>
+            </div>
+        `;
+    }
+
+    if (!data || data.length === 0) {
+        return `
+            <div class="historial-estados">
+                <h3>Historial de estados</h3>
+                <p class="historial-vacio">Aun no hay cambios registrados para este pedido.</p>
+            </div>
+        `;
+    }
+
+    return `
+        <div class="historial-estados">
+            <h3>Historial de estados</h3>
+
+            <div class="historial-lista">
+                ${data.map(function (item) {
+                    return `
+                        <div class="historial-item">
+                            <span class="historial-fecha">${formatearFechaHora(item.creado_at)}</span>
+                            <strong>${item.estado_anterior || "Sin estado"} -> ${item.estado_nuevo}</strong>
+                        </div>
+                    `;
+                }).join("")}
+            </div>
+        </div>
+    `;
+}
+
+async function abrirDetallePedido(idPedido) {
     const pedido = pedidos.find(p => String(p.id_pedido) === String(idPedido));
 
     if (!pedido) {
@@ -299,6 +370,7 @@ function abrirDetallePedido(idPedido) {
     const telefonoLimpio = limpiarTelefono(cliente.telefono);
     const mensajeWhatsapp = generarMensajeWhatsApp(pedido, cliente);
     const enlaceWhatsapp = `https://wa.me/51${telefonoLimpio}?text=${encodeURIComponent(mensajeWhatsapp)}`;
+    const historialHTML = await cargarHistorialPedido(idPedido);
 
     detallePedido.innerHTML = `
         <div class="detalle-estado">
@@ -383,6 +455,8 @@ function abrirDetallePedido(idPedido) {
             <span>Observaciones</span>
             <p>${pedido.observaciones || "Sin observaciones."}</p>
         </div>
+
+        ${historialHTML}
     `;
 
     pedidoModal.classList.add("active");

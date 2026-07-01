@@ -14,65 +14,103 @@ const tablaReporte = document.getElementById("tablaReporte");
 const tablaStockBajoReporte = document.getElementById("tablaStockBajoReporte");
 
 let reporteActual = "";
+let ventasReporte = [];
+let productosReporte = [];
+let metodosPagoReporte = [];
+let umbralStockReporte = 5;
 
 iniciarReportes();
 
 async function iniciarReportes() {
-    await cargarMetodosPagoReporte();
-    await cargarResumenReporte();
-    await mostrarProductosStockBajo();
-}
+    const usuario = await verificarAdminSupabase();
 
-/* ============================================================
-   CARGAR MÉTODOS DE PAGO
-   ============================================================ */
-
-async function cargarMetodosPagoReporte() {
-    try {
-        const respuesta = await fetch("/api/metodos-pago");
-        const datos = await respuesta.json();
-
-        if (datos.ok === false) {
-            alert(datos.mensaje || "Error al cargar métodos de pago.");
-            return;
-        }
-
-        filtroPagoReporte.innerHTML = '<option value="">Todos</option>';
-
-        datos.metodos.forEach(function (metodo) {
-            const opcion = document.createElement("option");
-
-            opcion.value = metodo.idMetodoPago;
-            opcion.textContent = metodo.nombreMetodo;
-
-            filtroPagoReporte.appendChild(opcion);
-        });
-
-    } catch (error) {
-        alert("No se pudo conectar con el servidor para cargar métodos de pago.");
-        console.error(error);
+    if (!usuario) {
+        return;
     }
+
+    await cargarDatosBaseReporte();
+    cargarMetodosPagoReporte();
+    cargarResumenReporte();
+    mostrarProductosStockBajo();
 }
 
-/* ============================================================
-   FILTROS
-   ============================================================ */
+async function cargarDatosBaseReporte() {
+    const [configRes, metodosRes, productosRes, ventasRes] = await Promise.all([
+        supabaseClient
+            .from("sistema_configuracion")
+            .select("clave, valor")
+            .eq("clave", "stock_bajo_productos")
+            .maybeSingle(),
+        supabaseClient
+            .from("sistema_metodos_pago")
+            .select("*")
+            .eq("activo", true)
+            .order("nombre_metodo", { ascending: true }),
+        supabaseClient
+            .from("sistema_productos")
+            .select("*")
+            .order("nombre_producto", { ascending: true }),
+        supabaseClient
+            .from("sistema_ventas")
+            .select(`
+                *,
+                sistema_clientes (
+                    nombre_cliente
+                ),
+                sistema_productos (
+                    nombre_producto
+                ),
+                sistema_metodos_pago (
+                    nombre_metodo
+                )
+            `)
+            .eq("anulada", false)
+            .order("fecha_venta", { ascending: false })
+    ]);
 
-filtroFechaReporte.addEventListener("change", async function () {
-    await cargarResumenReporte();
-    await recargarReporteActual();
+    const error = configRes.error || metodosRes.error || productosRes.error || ventasRes.error;
+
+    if (error) {
+        console.error(error);
+        alert("No se pudieron cargar los reportes desde Supabase.");
+        return;
+    }
+
+    if (configRes.data) {
+        umbralStockReporte = Number(configRes.data.valor) || 5;
+    }
+
+    metodosPagoReporte = (metodosRes.data || []).map(mapearMetodoPago);
+    productosReporte = productosRes.data || [];
+    ventasReporte = (ventasRes.data || []).map(mapearVentaReporte);
+}
+
+function cargarMetodosPagoReporte() {
+    filtroPagoReporte.innerHTML = '<option value="">Todos</option>';
+
+    metodosPagoReporte.forEach(function (metodo) {
+        const opcion = document.createElement("option");
+        opcion.value = metodo.idMetodoPago;
+        opcion.textContent = metodo.nombreMetodo;
+        filtroPagoReporte.appendChild(opcion);
+    });
+}
+
+filtroFechaReporte.addEventListener("change", function () {
+    cargarResumenReporte();
+    recargarReporteActual();
 });
 
-filtroPagoReporte.addEventListener("change", async function () {
-    await cargarResumenReporte();
-    await recargarReporteActual();
+filtroPagoReporte.addEventListener("change", function () {
+    cargarResumenReporte();
+    recargarReporteActual();
 });
 
-btnLimpiarReporte.addEventListener("click", async function () {
+btnLimpiarReporte.addEventListener("click", function () {
     filtroFechaReporte.value = "";
     filtroPagoReporte.value = "";
 
-    await cargarResumenReporte();
+    cargarResumenReporte();
     limpiarReporte();
 
     reporteActual = "";
@@ -80,99 +118,56 @@ btnLimpiarReporte.addEventListener("click", async function () {
     descripcionReporte.textContent = "Selecciona una consulta para mostrar los datos correspondientes";
 });
 
-function obtenerQueryFiltros() {
+function obtenerVentasFiltradas() {
     const fecha = filtroFechaReporte.value;
-    const idMetodoPago = filtroPagoReporte.value;
+    const idMetodoPago = Number(filtroPagoReporte.value);
 
-    const parametros = new URLSearchParams();
+    return ventasReporte.filter(function (venta) {
+        const coincideFecha = fecha === "" || formatearFechaSQL(venta.fechaVenta) === fecha;
+        const coincidePago = !idMetodoPago || Number(venta.idMetodoPago) === idMetodoPago;
 
-    if (fecha !== "") {
-        parametros.append("fecha", fecha);
-    }
-
-    if (idMetodoPago !== "") {
-        parametros.append("idMetodoPago", idMetodoPago);
-    }
-
-    return parametros.toString();
+        return coincideFecha && coincidePago;
+    });
 }
 
-async function recargarReporteActual() {
+function recargarReporteActual() {
     if (reporteActual === "ventas") {
-        await mostrarVentasRecientes();
+        mostrarVentasRecientes();
     }
 
     if (reporteActual === "productos") {
-        await mostrarProductosMasVendidos();
+        mostrarProductosMasVendidos();
     }
 
     if (reporteActual === "clientes") {
-        await mostrarClientesFrecuentes();
+        mostrarClientesFrecuentes();
     }
 
     if (reporteActual === "ingresos") {
-        await mostrarIngresosPorFecha();
+        mostrarIngresosPorFecha();
     }
 }
 
-/* ============================================================
-   RESUMEN
-   ============================================================ */
+function cargarResumenReporte() {
+    const ventasFiltradas = obtenerVentasFiltradas();
 
-async function cargarResumenReporte() {
-    try {
-        const query = obtenerQueryFiltros();
-
-        const respuesta = await fetch(`/api/reportes/resumen?${query}`);
-        const datos = await respuesta.json();
-
-        if (datos.ok === false) {
-            alert(datos.mensaje || "Error al cargar resumen.");
-            return;
-        }
-
-        const resumen = datos.resumen;
-
-        totalVentas.textContent = resumen.totalVentas;
-        ingresosTotales.textContent = `S/ ${Number(resumen.ingresosTotales).toFixed(2)}`;
-        totalProductos.textContent = resumen.totalProductos;
-        stockBajo.textContent = resumen.stockBajo;
-
-    } catch (error) {
-        alert("No se pudo conectar con el servidor para cargar el resumen.");
-        console.error(error);
-    }
+    totalVentas.textContent = ventasFiltradas.length;
+    ingresosTotales.textContent = `S/ ${sumarVentas(ventasFiltradas).toFixed(2)}`;
+    totalProductos.textContent = productosReporte.length;
+    stockBajo.textContent = productosReporte.filter(producto => Number(producto.stock) <= umbralStockReporte).length;
 }
-
-/* ============================================================
-   UTILIDADES
-   ============================================================ */
 
 function limpiarReporte() {
     encabezadoReporte.innerHTML = "";
     tablaReporte.innerHTML = "";
 }
 
-function formatearFechaSQL(fecha) {
-    const fechaObjeto = new Date(fecha);
-
-    const anio = fechaObjeto.getFullYear();
-    const mes = String(fechaObjeto.getMonth() + 1).padStart(2, "0");
-    const dia = String(fechaObjeto.getDate()).padStart(2, "0");
-
-    return `${anio}-${mes}-${dia}`;
-}
-
-/* ============================================================
-   VENTAS RECIENTES
-   ============================================================ */
-
-async function mostrarVentasRecientes() {
+function mostrarVentasRecientes() {
     reporteActual = "ventas";
     limpiarReporte();
 
     tituloReporte.textContent = "Ventas recientes";
-    descripcionReporte.textContent = "Muestra ventas ordenadas por fecha según los filtros aplicados";
+    descripcionReporte.textContent = "Muestra ventas ordenadas por fecha segun los filtros aplicados";
 
     encabezadoReporte.innerHTML = `
         <tr>
@@ -185,57 +180,39 @@ async function mostrarVentasRecientes() {
         </tr>
     `;
 
-    try {
-        const query = obtenerQueryFiltros();
+    const ventasFiltradas = obtenerVentasFiltradas();
 
-        const respuesta = await fetch(`/api/reportes/ventas-recientes?${query}`);
-        const datos = await respuesta.json();
-
-        if (datos.ok === false) {
-            alert(datos.mensaje || "Error al cargar ventas recientes.");
-            return;
-        }
-
-        if (datos.ventas.length === 0) {
-            tablaReporte.innerHTML = `
-                <tr>
-                    <td colspan="6">No hay ventas para los filtros seleccionados.</td>
-                </tr>
-            `;
-            return;
-        }
-
-        datos.ventas.forEach(function (venta) {
-            const fila = document.createElement("tr");
-
-            fila.innerHTML = `
-                <td>${venta.nombreCliente}</td>
-                <td>${venta.nombreProducto}</td>
-                <td>${venta.cantidad}</td>
-                <td>${venta.nombreMetodo}</td>
-                <td>${formatearFechaSQL(venta.fechaVenta)}</td>
-                <td>S/ ${Number(venta.totalVenta).toFixed(2)}</td>
-            `;
-
-            tablaReporte.appendChild(fila);
-        });
-
-    } catch (error) {
-        alert("No se pudo conectar con el servidor para cargar ventas recientes.");
-        console.error(error);
+    if (ventasFiltradas.length === 0) {
+        tablaReporte.innerHTML = `
+            <tr>
+                <td colspan="6">No hay ventas para los filtros seleccionados.</td>
+            </tr>
+        `;
+        return;
     }
+
+    ventasFiltradas.forEach(function (venta) {
+        const fila = document.createElement("tr");
+
+        fila.innerHTML = `
+            <td>${textoSeguro(venta.nombreCliente)}</td>
+            <td>${textoSeguro(venta.nombreProducto)}</td>
+            <td>${Number(venta.cantidad)}</td>
+            <td>${textoSeguro(venta.nombreMetodo)}</td>
+            <td>${formatearFechaSQL(venta.fechaVenta)}</td>
+            <td>S/ ${Number(venta.totalVenta).toFixed(2)}</td>
+        `;
+
+        tablaReporte.appendChild(fila);
+    });
 }
 
-/* ============================================================
-   PRODUCTOS MÁS VENDIDOS
-   ============================================================ */
-
-async function mostrarProductosMasVendidos() {
+function mostrarProductosMasVendidos() {
     reporteActual = "productos";
     limpiarReporte();
 
-    tituloReporte.textContent = "Productos más vendidos";
-    descripcionReporte.textContent = "Suma la cantidad vendida por producto según los filtros aplicados";
+    tituloReporte.textContent = "Productos mas vendidos";
+    descripcionReporte.textContent = "Suma la cantidad vendida por producto segun los filtros aplicados";
 
     encabezadoReporte.innerHTML = `
         <tr>
@@ -245,54 +222,52 @@ async function mostrarProductosMasVendidos() {
         </tr>
     `;
 
-    try {
-        const query = obtenerQueryFiltros();
+    const agrupado = new Map();
 
-        const respuesta = await fetch(`/api/reportes/productos-mas-vendidos?${query}`);
-        const datos = await respuesta.json();
+    obtenerVentasFiltradas().forEach(function (venta) {
+        const clave = venta.idProducto || venta.nombreProducto;
+        const actual = agrupado.get(clave) || {
+            nombreProducto: venta.nombreProducto,
+            cantidadVendida: 0,
+            ingresoGenerado: 0
+        };
 
-        if (datos.ok === false) {
-            alert(datos.mensaje || "Error al cargar productos más vendidos.");
-            return;
-        }
+        actual.cantidadVendida += Number(venta.cantidad || 0);
+        actual.ingresoGenerado += Number(venta.totalVenta || 0);
+        agrupado.set(clave, actual);
+    });
 
-        if (datos.productos.length === 0) {
-            tablaReporte.innerHTML = `
-                <tr>
-                    <td colspan="3">No hay productos vendidos para los filtros seleccionados.</td>
-                </tr>
-            `;
-            return;
-        }
+    const productos = Array.from(agrupado.values())
+        .sort((a, b) => b.cantidadVendida - a.cantidadVendida);
 
-        datos.productos.forEach(function (producto) {
-            const fila = document.createElement("tr");
-
-            fila.innerHTML = `
-                <td>${producto.nombreProducto}</td>
-                <td>${producto.cantidadVendida}</td>
-                <td>S/ ${Number(producto.ingresoGenerado).toFixed(2)}</td>
-            `;
-
-            tablaReporte.appendChild(fila);
-        });
-
-    } catch (error) {
-        alert("No se pudo conectar con el servidor para cargar productos más vendidos.");
-        console.error(error);
+    if (productos.length === 0) {
+        tablaReporte.innerHTML = `
+            <tr>
+                <td colspan="3">No hay productos vendidos para los filtros seleccionados.</td>
+            </tr>
+        `;
+        return;
     }
+
+    productos.forEach(function (producto) {
+        const fila = document.createElement("tr");
+
+        fila.innerHTML = `
+            <td>${textoSeguro(producto.nombreProducto)}</td>
+            <td>${Number(producto.cantidadVendida)}</td>
+            <td>S/ ${Number(producto.ingresoGenerado).toFixed(2)}</td>
+        `;
+
+        tablaReporte.appendChild(fila);
+    });
 }
 
-/* ============================================================
-   CLIENTES FRECUENTES
-   ============================================================ */
-
-async function mostrarClientesFrecuentes() {
+function mostrarClientesFrecuentes() {
     reporteActual = "clientes";
     limpiarReporte();
 
     tituloReporte.textContent = "Clientes frecuentes";
-    descripcionReporte.textContent = "Muestra clientes con mayor cantidad de compras según los filtros aplicados";
+    descripcionReporte.textContent = "Muestra clientes con mayor cantidad de compras segun los filtros aplicados";
 
     encabezadoReporte.innerHTML = `
         <tr>
@@ -302,142 +277,170 @@ async function mostrarClientesFrecuentes() {
         </tr>
     `;
 
-    try {
-        const query = obtenerQueryFiltros();
+    const agrupado = new Map();
 
-        const respuesta = await fetch(`/api/reportes/clientes-frecuentes?${query}`);
-        const datos = await respuesta.json();
+    obtenerVentasFiltradas().forEach(function (venta) {
+        const clave = venta.idCliente || venta.nombreCliente;
+        const actual = agrupado.get(clave) || {
+            nombreCliente: venta.nombreCliente,
+            cantidadCompras: 0,
+            totalComprado: 0
+        };
 
-        if (datos.ok === false) {
-            alert(datos.mensaje || "Error al cargar clientes frecuentes.");
-            return;
-        }
+        actual.cantidadCompras += 1;
+        actual.totalComprado += Number(venta.totalVenta || 0);
+        agrupado.set(clave, actual);
+    });
 
-        if (datos.clientes.length === 0) {
-            tablaReporte.innerHTML = `
-                <tr>
-                    <td colspan="3">No hay clientes para los filtros seleccionados.</td>
-                </tr>
-            `;
-            return;
-        }
+    const clientes = Array.from(agrupado.values())
+        .sort((a, b) => b.totalComprado - a.totalComprado);
 
-        datos.clientes.forEach(function (cliente) {
-            const fila = document.createElement("tr");
-
-            fila.innerHTML = `
-                <td>${cliente.nombreCliente}</td>
-                <td>${cliente.cantidadCompras}</td>
-                <td>S/ ${Number(cliente.totalComprado).toFixed(2)}</td>
-            `;
-
-            tablaReporte.appendChild(fila);
-        });
-
-    } catch (error) {
-        alert("No se pudo conectar con el servidor para cargar clientes frecuentes.");
-        console.error(error);
+    if (clientes.length === 0) {
+        tablaReporte.innerHTML = `
+            <tr>
+                <td colspan="3">No hay clientes para los filtros seleccionados.</td>
+            </tr>
+        `;
+        return;
     }
+
+    clientes.forEach(function (cliente) {
+        const fila = document.createElement("tr");
+
+        fila.innerHTML = `
+            <td>${textoSeguro(cliente.nombreCliente)}</td>
+            <td>${Number(cliente.cantidadCompras)}</td>
+            <td>S/ ${Number(cliente.totalComprado).toFixed(2)}</td>
+        `;
+
+        tablaReporte.appendChild(fila);
+    });
 }
 
-/* ============================================================
-   INGRESOS POR FECHA
-   ============================================================ */
-
-async function mostrarIngresosPorFecha() {
+function mostrarIngresosPorFecha() {
     reporteActual = "ingresos";
     limpiarReporte();
 
     tituloReporte.textContent = "Ingresos por fecha";
-    descripcionReporte.textContent = "Agrupa las ventas por día y calcula ingresos según los filtros aplicados";
+    descripcionReporte.textContent = "Agrupa las ventas por dia y calcula ingresos segun los filtros aplicados";
 
     encabezadoReporte.innerHTML = `
         <tr>
             <th>Fecha</th>
             <th>Cantidad de ventas</th>
-            <th>Ingresos del día</th>
+            <th>Ingresos del dia</th>
         </tr>
     `;
 
-    try {
-        const query = obtenerQueryFiltros();
+    const agrupado = new Map();
 
-        const respuesta = await fetch(`/api/reportes/ingresos-por-fecha?${query}`);
-        const datos = await respuesta.json();
+    obtenerVentasFiltradas().forEach(function (venta) {
+        const fecha = formatearFechaSQL(venta.fechaVenta);
+        const actual = agrupado.get(fecha) || {
+            fechaVenta: fecha,
+            cantidadVentas: 0,
+            ingresos: 0
+        };
 
-        if (datos.ok === false) {
-            alert(datos.mensaje || "Error al cargar ingresos por fecha.");
-            return;
-        }
+        actual.cantidadVentas += 1;
+        actual.ingresos += Number(venta.totalVenta || 0);
+        agrupado.set(fecha, actual);
+    });
 
-        if (datos.ingresos.length === 0) {
-            tablaReporte.innerHTML = `
-                <tr>
-                    <td colspan="3">No hay ingresos para los filtros seleccionados.</td>
-                </tr>
-            `;
-            return;
-        }
+    const ingresos = Array.from(agrupado.values())
+        .sort((a, b) => String(b.fechaVenta).localeCompare(String(a.fechaVenta)));
 
-        datos.ingresos.forEach(function (item) {
-            const fila = document.createElement("tr");
-
-            fila.innerHTML = `
-                <td>${formatearFechaSQL(item.fechaVenta)}</td>
-                <td>${item.cantidadVentas}</td>
-                <td>S/ ${Number(item.ingresos).toFixed(2)}</td>
-            `;
-
-            tablaReporte.appendChild(fila);
-        });
-
-    } catch (error) {
-        alert("No se pudo conectar con el servidor para cargar ingresos por fecha.");
-        console.error(error);
+    if (ingresos.length === 0) {
+        tablaReporte.innerHTML = `
+            <tr>
+                <td colspan="3">No hay ingresos para los filtros seleccionados.</td>
+            </tr>
+        `;
+        return;
     }
+
+    ingresos.forEach(function (item) {
+        const fila = document.createElement("tr");
+
+        fila.innerHTML = `
+            <td>${formatearFechaSQL(item.fechaVenta)}</td>
+            <td>${Number(item.cantidadVentas)}</td>
+            <td>S/ ${Number(item.ingresos).toFixed(2)}</td>
+        `;
+
+        tablaReporte.appendChild(fila);
+    });
 }
 
-/* ============================================================
-   STOCK BAJO
-   ============================================================ */
-
-async function mostrarProductosStockBajo() {
+function mostrarProductosStockBajo() {
     tablaStockBajoReporte.innerHTML = "";
 
-    try {
-        const respuesta = await fetch("/api/reportes/stock-bajo");
-        const datos = await respuesta.json();
+    const productosStockBajo = productosReporte
+        .filter(producto => Number(producto.stock) <= umbralStockReporte)
+        .sort((a, b) => Number(a.stock) - Number(b.stock));
 
-        if (datos.ok === false) {
-            alert(datos.mensaje || "Error al cargar productos con bajo stock.");
-            return;
-        }
-
-        if (datos.productos.length === 0) {
-            tablaStockBajoReporte.innerHTML = `
-                <tr>
-                    <td colspan="5">No hay productos con bajo stock.</td>
-                </tr>
-            `;
-            return;
-        }
-
-        datos.productos.forEach(function (producto) {
-            const fila = document.createElement("tr");
-
-            fila.innerHTML = `
-                <td>${producto.ordenProduccion}</td>
-                <td>${producto.codigoDiseno}</td>
-                <td>${producto.nombreProducto}</td>
-                <td>${producto.stock}</td>
-                <td>S/ ${Number(producto.precio).toFixed(2)}</td>
-            `;
-
-            tablaStockBajoReporte.appendChild(fila);
-        });
-
-    } catch (error) {
-        alert("No se pudo conectar con el servidor para cargar productos con bajo stock.");
-        console.error(error);
+    if (productosStockBajo.length === 0) {
+        tablaStockBajoReporte.innerHTML = `
+            <tr>
+                <td colspan="5">No hay productos con bajo stock.</td>
+            </tr>
+        `;
+        return;
     }
+
+    productosStockBajo.forEach(function (producto) {
+        const fila = document.createElement("tr");
+
+        fila.innerHTML = `
+            <td>${textoSeguro(producto.orden_produccion)}</td>
+            <td>${textoSeguro(producto.codigo_diseno)}</td>
+            <td>${textoSeguro(producto.nombre_producto)}</td>
+            <td>${Number(producto.stock)}</td>
+            <td>S/ ${Number(producto.precio).toFixed(2)}</td>
+        `;
+
+        tablaStockBajoReporte.appendChild(fila);
+    });
+}
+
+function sumarVentas(lista) {
+    return lista.reduce((total, venta) => total + Number(venta.totalVenta || 0), 0);
+}
+
+function mapearMetodoPago(metodo) {
+    return {
+        idMetodoPago: metodo.id_metodo_pago,
+        nombreMetodo: metodo.nombre_metodo
+    };
+}
+
+function mapearVentaReporte(venta) {
+    return {
+        idVenta: venta.id_venta,
+        idCliente: venta.id_cliente,
+        idProducto: venta.id_producto,
+        idMetodoPago: venta.id_metodo_pago,
+        nombreCliente: venta.sistema_clientes?.nombre_cliente || "Cliente eliminado",
+        nombreProducto: venta.sistema_productos?.nombre_producto || "Producto eliminado",
+        nombreMetodo: venta.sistema_metodos_pago?.nombre_metodo || "-",
+        cantidad: venta.cantidad,
+        totalVenta: venta.total_venta,
+        fechaVenta: venta.fecha_venta
+    };
+}
+
+function formatearFechaSQL(fecha) {
+    if (!fecha) {
+        return "";
+    }
+
+    return String(fecha).slice(0, 10);
+}
+
+function textoSeguro(valor) {
+    if (typeof escaparHTML === "function") {
+        return escaparHTML(valor);
+    }
+
+    return String(valor ?? "");
 }

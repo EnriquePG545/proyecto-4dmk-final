@@ -13,137 +13,92 @@ const inputTipoCliente = document.getElementById("tipoCliente");
 const inputDireccionCliente = document.getElementById("direccionCliente");
 
 let clientes = [];
-
 let editandoCliente = false;
 let idClienteEditando = null;
 
 btnCancelarCliente.style.display = "none";
 
-cargarClientesDesdeSQL();
+iniciarClientes();
 
-/* ============================================================
-   REGISTRAR / ACTUALIZAR CLIENTE
-   ============================================================ */
+async function iniciarClientes() {
+    const usuario = await verificarAdminSupabase();
+
+    if (!usuario) {
+        return;
+    }
+
+    await cargarClientesDesdeSQL();
+    activarRealtimeClientes();
+}
 
 formCliente.addEventListener("submit", async function (e) {
     e.preventDefault();
 
     const cliente = {
-        nombreCliente: inputNombreCliente.value.trim() || "-",
+        nombre_cliente: inputNombreCliente.value.trim() || "-",
         documento: inputDocumentoCliente.value.trim() || "-",
         telefono: inputTelefonoCliente.value.trim() || "-",
-        tipoCliente: inputTipoCliente.value || "-",
+        tipo_cliente: inputTipoCliente.value || "-",
         direccion: inputDireccionCliente.value.trim() || "-"
     };
 
-        if (editandoCliente === true) {
-            await actualizarCliente(cliente);
-        } else {
-            await registrarCliente(cliente);
-        }
-    });
-
-/* ============================================================
-   BUSCADOR
-   ============================================================ */
-
-buscadorClientes.addEventListener("input", function () {
-    mostrarClientes();
+    if (editandoCliente) {
+        await actualizarCliente(cliente);
+    } else {
+        await registrarCliente(cliente);
+    }
 });
 
-/* ============================================================
-   CARGAR CLIENTES DESDE SQL SERVER
-   ============================================================ */
+buscadorClientes.addEventListener("input", mostrarClientes);
 
 async function cargarClientesDesdeSQL() {
-    try {
-        const respuesta = await fetch("/api/clientes");
-        const datos = await respuesta.json();
+    const { data, error } = await supabaseClient
+        .from("sistema_clientes")
+        .select("*")
+        .order("nombre_cliente", { ascending: true });
 
-        if (datos.ok === false) {
-            alert(datos.mensaje || "Error al cargar clientes.");
-            return;
-        }
-
-        clientes = datos.clientes;
-
-        mostrarClientes();
-
-    } catch (error) {
-        alert("No se pudo conectar con el servidor para cargar clientes.");
+    if (error) {
         console.error(error);
+        alert("No se pudo cargar clientes desde Supabase.");
+        return;
     }
-}
 
-/* ============================================================
-   REGISTRAR CLIENTE EN SQL SERVER
-   ============================================================ */
+    clientes = (data || []).map(mapearCliente);
+    mostrarClientes();
+}
 
 async function registrarCliente(cliente) {
-    try {
-        const respuesta = await fetch("/api/clientes", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify(cliente)
-        });
+    const { error } = await supabaseClient
+        .from("sistema_clientes")
+        .insert(cliente);
 
-        const datos = await respuesta.json();
-
-        if (datos.ok === false) {
-            alert(datos.mensaje || "No se pudo registrar el cliente.");
-            return;
-        }
-
-        alert(datos.mensaje);
-
-        limpiarFormularioCliente();
-
-        await cargarClientesDesdeSQL();
-
-    } catch (error) {
-        alert("Error al registrar cliente en el servidor.");
+    if (error) {
         console.error(error);
+        alert("No se pudo registrar el cliente.");
+        return;
     }
-}
 
-/* ============================================================
-   ACTUALIZAR CLIENTE EN SQL SERVER
-   ============================================================ */
+    alert("Cliente registrado correctamente.");
+    limpiarFormularioCliente();
+    await cargarClientesDesdeSQL();
+}
 
 async function actualizarCliente(cliente) {
-    try {
-        const respuesta = await fetch(`/api/clientes/${idClienteEditando}`, {
-            method: "PUT",
-            headers: {
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify(cliente)
-        });
+    const { error } = await supabaseClient
+        .from("sistema_clientes")
+        .update(cliente)
+        .eq("id_cliente", idClienteEditando);
 
-        const datos = await respuesta.json();
-
-        if (datos.ok === false) {
-            alert(datos.mensaje || "No se pudo actualizar el cliente.");
-            return;
-        }
-
-        alert(datos.mensaje);
-
-        limpiarFormularioCliente();
-
-        await cargarClientesDesdeSQL();
-
-    } catch (error) {
-        alert("Error al actualizar cliente en el servidor.");
+    if (error) {
         console.error(error);
+        alert("No se pudo actualizar el cliente.");
+        return;
     }
-}
 
-/* ============================================================
-   MOSTRAR CLIENTES
-   ============================================================ */
+    alert("Cliente actualizado correctamente.");
+    limpiarFormularioCliente();
+    await cargarClientesDesdeSQL();
+}
 
 function mostrarClientes() {
     tablaClientes.innerHTML = "";
@@ -152,19 +107,15 @@ function mostrarClientes() {
 
     const clientesFiltrados = clientes
         .filter(function (cliente) {
-            const nombre = cliente.nombreCliente.toLowerCase();
-            const documento = cliente.documento.toLowerCase();
-            const telefono = cliente.telefono.toLowerCase();
-            const tipo = cliente.tipoCliente.toLowerCase();
-            const direccion = (cliente.direccion || "").toLowerCase();
+            const campos = [
+                cliente.nombreCliente,
+                cliente.documento,
+                cliente.telefono,
+                cliente.tipoCliente,
+                cliente.direccion
+            ].join(" ").toLowerCase();
 
-            return (
-                nombre.includes(textoBusqueda) ||
-                documento.includes(textoBusqueda) ||
-                telefono.includes(textoBusqueda) ||
-                tipo.includes(textoBusqueda) ||
-                direccion.includes(textoBusqueda)
-            );
+            return campos.includes(textoBusqueda);
         })
         .sort(function (a, b) {
             return a.nombreCliente.localeCompare(b.nombreCliente);
@@ -183,11 +134,11 @@ function mostrarClientes() {
         const fila = document.createElement("tr");
 
         fila.innerHTML = `
-            <td>${cliente.nombreCliente}</td>
-            <td>${cliente.documento}</td>
-            <td>${cliente.telefono}</td>
-            <td>${cliente.tipoCliente}</td>
-            <td>${cliente.direccion || ""}</td>
+            <td>${escaparHTML(cliente.nombreCliente)}</td>
+            <td>${escaparHTML(cliente.documento)}</td>
+            <td>${escaparHTML(cliente.telefono)}</td>
+            <td>${escaparHTML(cliente.tipoCliente)}</td>
+            <td>${escaparHTML(cliente.direccion || "")}</td>
             <td>
                 <button class="boton-tabla editar" onclick="editarCliente(${cliente.idCliente})">
                     <i class="ri-edit-line"></i>
@@ -205,17 +156,11 @@ function mostrarClientes() {
     });
 }
 
-/* ============================================================
-   EDITAR CLIENTE
-   ============================================================ */
-
 function editarCliente(idCliente) {
-    const cliente = clientes.find(function (item) {
-        return item.idCliente === idCliente;
-    });
+    const cliente = clientes.find(item => Number(item.idCliente) === Number(idCliente));
 
     if (!cliente) {
-        alert("No se encontró el cliente seleccionado.");
+        alert("No se encontro el cliente seleccionado.");
         return;
     }
 
@@ -226,66 +171,66 @@ function editarCliente(idCliente) {
     inputDireccionCliente.value = cliente.direccion || "";
 
     editandoCliente = true;
-    idClienteEditando = idCliente;
+    idClienteEditando = Number(idCliente);
 
     tituloFormularioCliente.textContent = "Editar Cliente";
     btnGuardarCliente.innerHTML = '<i class="ri-save-line"></i> Actualizar Cliente';
     btnCancelarCliente.style.display = "inline-block";
 
-    window.scrollTo({
-        top: 0,
-        behavior: "smooth"
-    });
+    window.scrollTo({ top: 0, behavior: "smooth" });
 }
 
-/* ============================================================
-   ELIMINAR CLIENTE
-   ============================================================ */
-
 async function eliminarCliente(idCliente) {
-    const confirmar = confirm("¿Estás seguro de eliminar este cliente?");
+    const confirmar = confirm("Estas seguro de eliminar este cliente?");
 
-    if (confirmar === false) {
+    if (!confirmar) {
         return;
     }
 
-    try {
-        const respuesta = await fetch(`/api/clientes/${idCliente}`, {
-            method: "DELETE"
-        });
+    const { error } = await supabaseClient
+        .from("sistema_clientes")
+        .delete()
+        .eq("id_cliente", Number(idCliente));
 
-        const datos = await respuesta.json();
-
-        if (datos.ok === false) {
-            alert(datos.mensaje || "No se pudo eliminar el cliente.");
-            return;
-        }
-
-        alert(datos.mensaje);
-
-        await cargarClientesDesdeSQL();
-
-    } catch (error) {
-        alert("Error al eliminar cliente en el servidor.");
+    if (error) {
         console.error(error);
+        alert("No se pudo eliminar el cliente. Si tiene ventas asociadas, se conserva para proteger el historial.");
+        return;
     }
+
+    alert("Cliente eliminado correctamente.");
+    await cargarClientesDesdeSQL();
 }
 
-/* ============================================================
-   CANCELAR EDICIÓN
-   ============================================================ */
-
-btnCancelarCliente.addEventListener("click", function () {
-    limpiarFormularioCliente();
-});
+btnCancelarCliente.addEventListener("click", limpiarFormularioCliente);
 
 function limpiarFormularioCliente() {
     formCliente.reset();
-
     editandoCliente = false;
     idClienteEditando = null;
-
     tituloFormularioCliente.textContent = "Nuevo Cliente";
     btnGuardarCliente.innerHTML = '<i class="ri-save-line"></i> Registrar Cliente';
     btnCancelarCliente.style.display = "none";
+}
+
+function activarRealtimeClientes() {
+    supabaseClient
+        .channel("sistema-clientes-admin")
+        .on("postgres_changes", {
+            event: "*",
+            schema: "public",
+            table: "sistema_clientes"
+        }, cargarClientesDesdeSQL)
+        .subscribe();
+}
+
+function mapearCliente(cliente) {
+    return {
+        idCliente: cliente.id_cliente,
+        nombreCliente: cliente.nombre_cliente,
+        documento: cliente.documento,
+        telefono: cliente.telefono,
+        tipoCliente: cliente.tipo_cliente,
+        direccion: cliente.direccion
+    };
 }

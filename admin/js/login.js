@@ -3,8 +3,6 @@ const inputUsuario = document.getElementById("usuario");
 const inputPassword = document.getElementById("password");
 const btnVerPassword = document.getElementById("btnVerPassword");
 
-/* NOTIFICACIÓN PARA LOGIN */
-
 function crearContenedorNotificacionesLogin() {
     let contenedor = document.getElementById("contenedorNotificaciones");
 
@@ -22,7 +20,7 @@ function mostrarNotificacionLogin(mensaje, tipo) {
     const contenedor = crearContenedorNotificacionesLogin();
 
     let icono = "ri-information-line";
-    let titulo = "Información";
+    let titulo = "Informacion";
 
     if (tipo === "exito") {
         icono = "ri-checkbox-circle-line";
@@ -36,7 +34,7 @@ function mostrarNotificacionLogin(mensaje, tipo) {
 
     if (tipo === "advertencia") {
         icono = "ri-alert-line";
-        titulo = "Atención";
+        titulo = "Atencion";
     }
 
     const notificacion = document.createElement("div");
@@ -82,55 +80,51 @@ function cerrarNotificacionLogin(notificacion) {
     }, 350);
 }
 
-/* VALIDACIÓN DEL LOGIN DESDE SQL SERVER */
-
 formLogin.addEventListener("submit", async function (e) {
     e.preventDefault();
 
-    const usuario = inputUsuario.value.trim();
+    const correo = inputUsuario.value.trim().toLowerCase();
     const contrasena = inputPassword.value.trim();
 
-    if (usuario === "" || contrasena === "") {
-        mostrarNotificacionLogin("Ingresa usuario y contraseña.", "advertencia");
+    if (correo === "" || contrasena === "") {
+        mostrarNotificacionLogin("Ingresa correo y contrasena.", "advertencia");
         return;
     }
 
-    try {
-        const respuesta = await fetch("/api/login", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify({
-                usuario: usuario,
-                contrasena: contrasena
-            })
-        });
+    const { data, error } = await supabaseClient.auth.signInWithPassword({
+        email: correo,
+        password: contrasena
+    });
 
-        const datos = await respuesta.json();
-
-        if (datos.ok === false) {
-            mostrarNotificacionLogin(datos.mensaje || "Usuario o contraseña incorrectos.", "error");
-            return;
-        }
-
-        localStorage.setItem("sesionActiva", "true");
-        localStorage.setItem("usuarioActivo", datos.usuario.usuario);
-        localStorage.setItem("nombreUsuarioActivo", datos.usuario.nombreCompleto);
-
-        mostrarNotificacionLogin(datos.mensaje, "exito");
-
-        setTimeout(function () {
-            window.location.href = "index.html";
-        }, 900);
-
-    } catch (error) {
-        mostrarNotificacionLogin("No se pudo conectar con el servidor.", "error");
+    if (error || !data.user) {
         console.error(error);
+        mostrarNotificacionLogin("Correo o contrasena incorrectos.", "error");
+        return;
     }
-});
 
-/* MOSTRAR / OCULTAR CONTRASEÑA */
+    const { data: adminData, error: adminError } = await supabaseClient
+        .from("admins")
+        .select("user_id, rol")
+        .eq("user_id", data.user.id)
+        .maybeSingle();
+
+    if (adminError || !adminData) {
+        await supabaseClient.auth.signOut();
+        mostrarNotificacionLogin("Tu cuenta no tiene permisos de administrador.", "error");
+        return;
+    }
+
+    localStorage.setItem("sesionActiva", "true");
+    localStorage.setItem("usuarioActivo", data.user.email || correo);
+    localStorage.setItem("nombreUsuarioActivo", "Administrador 4DMK");
+    localStorage.setItem("rolAdminActivo", adminData.rol || "admin");
+
+    mostrarNotificacionLogin("Ingresaste correctamente.", "exito");
+
+    setTimeout(function () {
+        window.location.href = "index.html";
+    }, 900);
+});
 
 btnVerPassword.addEventListener("click", function () {
     if (inputPassword.type === "password") {

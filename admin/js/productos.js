@@ -13,145 +13,97 @@ const inputNombre = document.getElementById("nombreProducto");
 const inputPrecio = document.getElementById("precioProducto");
 
 let productos = [];
-
 let editando = false;
 let idProductoEditando = null;
 
 btnCancelar.style.display = "none";
 
-cargarProductosDesdeSQL();
+iniciarProductos();
 
-/* ============================================================
-   REGISTRAR / ACTUALIZAR PRODUCTO
-   ============================================================ */
+async function iniciarProductos() {
+    const usuario = await verificarAdminSupabase();
+
+    if (!usuario) {
+        return;
+    }
+
+    await cargarProductosDesdeSQL();
+    activarRealtimeProductos();
+}
 
 formProducto.addEventListener("submit", async function (e) {
     e.preventDefault();
 
     const producto = {
-        ordenProduccion: inputOrden.value.trim() || "-",
-        codigoDiseno: (inputCodigo.value.trim() || "-").toUpperCase(),
+        orden_produccion: inputOrden.value.trim() || "-",
+        codigo_diseno: (inputCodigo.value.trim() || "-").toUpperCase(),
         stock: inputStock.value.trim() === "" ? 0 : Number(inputStock.value),
-        nombreProducto: inputNombre.value.trim() || "-",
+        nombre_producto: inputNombre.value.trim() || "-",
         precio: inputPrecio.value.trim() === "" ? 0 : Number(inputPrecio.value)
     };
 
-    if (
-        producto.stock < 0 ||
-        producto.precio < 0
-    ) {
+    if (producto.stock < 0 || producto.precio < 0) {
         alert("El stock y el precio no pueden ser negativos.");
         return;
     }
 
-    if (editando === true) {
+    if (editando) {
         await actualizarProducto(producto);
     } else {
         await registrarProducto(producto);
     }
 });
 
-/* ============================================================
-   BUSCADOR
-   ============================================================ */
-
-buscadorProductos.addEventListener("input", function () {
-    mostrarProductos();
-});
-
-/* ============================================================
-   CARGAR PRODUCTOS DESDE SQL SERVER
-   ============================================================ */
+buscadorProductos.addEventListener("input", mostrarProductos);
 
 async function cargarProductosDesdeSQL() {
-    try {
-        const respuesta = await fetch("/api/productos");
-        const datos = await respuesta.json();
+    const { data, error } = await supabaseClient
+        .from("sistema_productos")
+        .select("*")
+        .order("codigo_diseno", { ascending: true });
 
-        if (datos.ok === false) {
-            alert(datos.mensaje || "Error al cargar productos.");
-            return;
-        }
-
-        productos = datos.productos;
-
-        mostrarProductos();
-
-    } catch (error) {
-        alert("No se pudo conectar con el servidor para cargar productos.");
+    if (error) {
         console.error(error);
+        alert("No se pudo cargar productos desde Supabase.");
+        return;
     }
-}
 
-/* ============================================================
-   REGISTRAR PRODUCTO EN SQL SERVER
-   ============================================================ */
+    productos = (data || []).map(mapearProducto);
+    mostrarProductos();
+}
 
 async function registrarProducto(producto) {
-    try {
-        const respuesta = await fetch("/api/productos", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify(producto)
-        });
+    const { error } = await supabaseClient
+        .from("sistema_productos")
+        .insert(producto);
 
-        const datos = await respuesta.json();
-
-        if (datos.ok === false) {
-            alert(datos.mensaje || "No se pudo registrar el producto.");
-            return;
-        }
-
-        alert(datos.mensaje);
-
-        limpiarFormulario();
-
-        await cargarProductosDesdeSQL();
-
-    } catch (error) {
-        alert("Error al registrar producto en el servidor.");
+    if (error) {
         console.error(error);
+        alert(obtenerMensajeErrorProducto(error, "No se pudo registrar el producto."));
+        return;
     }
-}
 
-/* ============================================================
-   ACTUALIZAR PRODUCTO EN SQL SERVER
-   ============================================================ */
+    alert("Producto registrado correctamente.");
+    limpiarFormulario();
+    await cargarProductosDesdeSQL();
+}
 
 async function actualizarProducto(producto) {
-    try {
-        const respuesta = await fetch(`/api/productos/${idProductoEditando}`, {
-            method: "PUT",
-            headers: {
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify(producto)
-        });
+    const { error } = await supabaseClient
+        .from("sistema_productos")
+        .update(producto)
+        .eq("id_producto", idProductoEditando);
 
-        const datos = await respuesta.json();
-
-        if (datos.ok === false) {
-            alert(datos.mensaje || "No se pudo actualizar el producto.");
-            return;
-        }
-
-        alert(datos.mensaje);
-
-        limpiarFormulario();
-
-        await cargarProductosDesdeSQL();
-
-    } catch (error) {
-        alert("Error al actualizar producto en el servidor.");
+    if (error) {
         console.error(error);
+        alert(obtenerMensajeErrorProducto(error, "No se pudo actualizar el producto."));
+        return;
     }
-}
 
-/* ============================================================
-   MOSTRAR PRODUCTOS
-   ============================================================ */
+    alert("Producto actualizado correctamente.");
+    limpiarFormulario();
+    await cargarProductosDesdeSQL();
+}
 
 function mostrarProductos() {
     tablaProductos.innerHTML = "";
@@ -164,11 +116,7 @@ function mostrarProductos() {
             const codigo = String(producto.codigoDiseno || "").toLowerCase();
             const nombre = String(producto.nombreProducto || "").toLowerCase();
 
-            return (
-                orden.includes(textoBusqueda) ||
-                codigo.includes(textoBusqueda) ||
-                nombre.includes(textoBusqueda)
-            );
+            return orden.includes(textoBusqueda) || codigo.includes(textoBusqueda) || nombre.includes(textoBusqueda);
         })
         .sort(ordenarPorCodigoDiseno);
 
@@ -185,10 +133,10 @@ function mostrarProductos() {
         const fila = document.createElement("tr");
 
         fila.innerHTML = `
-            <td>${producto.ordenProduccion}</td>
-            <td>${producto.codigoDiseno}</td>
-            <td>${producto.stock}</td>
-            <td>${producto.nombreProducto}</td>
+            <td>${escaparHTML(producto.ordenProduccion)}</td>
+            <td>${escaparHTML(producto.codigoDiseno)}</td>
+            <td>${Number(producto.stock)}</td>
+            <td>${escaparHTML(producto.nombreProducto)}</td>
             <td>S/ ${Number(producto.precio).toFixed(2)}</td>
             <td>
                 <button type="button" class="boton-tabla editar" onclick="editarProducto(${Number(producto.idProducto)})">
@@ -207,14 +155,9 @@ function mostrarProductos() {
     });
 }
 
-/* ============================================================
-   ORDENAMIENTO
-   ============================================================ */
-
 function ordenarPorCodigoDiseno(a, b) {
     const codigoA = separarCodigo(String(a.codigoDiseno || ""));
     const codigoB = separarCodigo(String(b.codigoDiseno || ""));
-
     const comparacionLetras = codigoA.letras.localeCompare(codigoB.letras);
 
     if (comparacionLetras !== 0) {
@@ -239,25 +182,15 @@ function separarCodigo(codigo) {
     const letras = codigo.match(/[A-Z]+/g)?.join("") || "";
     const numeros = codigo.match(/\d+/g)?.map(Number) || [];
 
-    return {
-        letras: letras,
-        numeros: numeros
-    };
+    return { letras, numeros };
 }
-
-/* ============================================================
-   EDITAR PRODUCTO
-   ============================================================ */
 
 function editarProducto(idProducto) {
     const idBuscado = Number(idProducto);
-
-    const producto = productos.find(function (item) {
-        return Number(item.idProducto) === idBuscado;
-    });
+    const producto = productos.find(item => Number(item.idProducto) === idBuscado);
 
     if (!producto) {
-        alert("No se encontró el producto seleccionado.");
+        alert("No se encontro el producto seleccionado.");
         return;
     }
 
@@ -274,71 +207,68 @@ function editarProducto(idProducto) {
     btnGuardar.innerHTML = '<i class="ri-save-line"></i> Actualizar Producto';
     btnCancelar.style.display = "inline-block";
 
-    window.scrollTo({
-        top: 0,
-        behavior: "smooth"
-    });
+    window.scrollTo({ top: 0, behavior: "smooth" });
 }
-
-/* ============================================================
-   ELIMINAR PRODUCTO
-   ============================================================ */
 
 async function eliminarProducto(idProducto) {
-    const idBuscado = Number(idProducto);
+    const confirmar = confirm("Estas seguro de eliminar este producto?");
 
-    const producto = productos.find(function (item) {
-        return Number(item.idProducto) === idBuscado;
-    });
-
-    if (!producto) {
-        alert("No se encontró el producto seleccionado.");
+    if (!confirmar) {
         return;
     }
 
-    const confirmar = confirm("¿Estás seguro de eliminar este producto?");
+    const { error } = await supabaseClient
+        .from("sistema_productos")
+        .delete()
+        .eq("id_producto", Number(idProducto));
 
-    if (confirmar === false) {
-        return;
-    }
-
-    try {
-        const respuesta = await fetch(`/api/productos/${idBuscado}`, {
-            method: "DELETE"
-        });
-
-        const datos = await respuesta.json();
-
-        if (datos.ok === false) {
-            alert(datos.mensaje || "No se pudo eliminar el producto.");
-            return;
-        }
-
-        alert(datos.mensaje);
-
-        await cargarProductosDesdeSQL();
-
-    } catch (error) {
-        alert("Error al eliminar producto en el servidor.");
+    if (error) {
         console.error(error);
+        alert("No se pudo eliminar el producto. Si tiene ventas asociadas, no se eliminara para proteger el historial.");
+        return;
     }
+
+    alert("Producto eliminado correctamente.");
+    await cargarProductosDesdeSQL();
 }
 
-/* ============================================================
-   LIMPIAR FORMULARIO
-   ============================================================ */
-
-btnCancelar.addEventListener("click", function () {
-    limpiarFormulario();
-});
+btnCancelar.addEventListener("click", limpiarFormulario);
 
 function limpiarFormulario() {
     formProducto.reset();
-
     editando = false;
     idProductoEditando = null;
-
     tituloFormulario.textContent = "Nuevo Producto";
     btnGuardar.innerHTML = '<i class="ri-save-line"></i> Registrar Producto';
     btnCancelar.style.display = "none";
+}
+
+function activarRealtimeProductos() {
+    supabaseClient
+        .channel("sistema-productos-admin")
+        .on("postgres_changes", {
+            event: "*",
+            schema: "public",
+            table: "sistema_productos"
+        }, cargarProductosDesdeSQL)
+        .subscribe();
+}
+
+function mapearProducto(producto) {
+    return {
+        idProducto: producto.id_producto,
+        ordenProduccion: producto.orden_produccion,
+        codigoDiseno: producto.codigo_diseno,
+        stock: producto.stock,
+        nombreProducto: producto.nombre_producto,
+        precio: producto.precio
+    };
+}
+
+function obtenerMensajeErrorProducto(error, mensajeBase) {
+    if (error && error.code === "23505") {
+        return "Ya existe un producto con ese codigo de diseno.";
+    }
+
+    return mensajeBase;
 }

@@ -383,6 +383,11 @@ tbody td:last-child{
     color:#166534;
 }
 
+.stock-hilo-bajo{
+    background:#fee2e2;
+    color:#991b1b;
+}
+
 .estado-pelon-casi-nada{
     background:#fee2e2;
     color:#991b1b;
@@ -2355,6 +2360,49 @@ tbody tr:hover td{
 
     .modal-btn{
         width:100%;
+    }
+}
+
+/* AJUSTES OPERATIVOS */
+
+.config-form-grid{
+    display:grid;
+    grid-template-columns:repeat(2,minmax(0,1fr));
+    gap:20px;
+    padding:24px;
+    background:#f9fafb;
+    border:1px solid #e5e7eb;
+    border-radius:18px;
+}
+
+.config-form-footer{
+    display:flex;
+    align-items:center;
+    gap:16px;
+    flex-wrap:wrap;
+}
+
+.estado-configuracion{
+    margin:0;
+    font-weight:700;
+    color:#6b7280;
+}
+
+.estado-configuracion-exito{
+    color:#166534;
+}
+
+.estado-configuracion-error{
+    color:#991b1b;
+}
+
+.estado-configuracion-info{
+    color:#1d4ed8;
+}
+
+@media(max-width:800px){
+    .config-form-grid{
+        grid-template-columns:1fr;
     }
 }
 /* ============================================================

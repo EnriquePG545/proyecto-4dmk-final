@@ -8,6 +8,7 @@ const inputStock = document.getElementById("stockDisponible");
 const inputPrecio = document.getElementById("precio");
 const inputCantidad = document.getElementById("cantidad");
 const inputTotal = document.getElementById("total");
+const inputObservacion = document.getElementById("observacion");
 
 const selectPago = document.getElementById("pago");
 const inputFecha = document.getElementById("fecha");
@@ -21,169 +22,144 @@ let productos = [];
 let clientes = [];
 let metodosPago = [];
 let ventas = [];
+let canalVentas = null;
 
 iniciarVentas();
 
 async function iniciarVentas() {
-    await cargarClientesDesdeSQL();
-    await cargarProductosDesdeSQL();
-    await cargarMetodosPagoDesdeSQL();
-    await cargarVentasDesdeSQL();
+    const usuario = await verificarAdminSupabase();
 
+    if (!usuario) {
+        return;
+    }
+
+    inputFecha.value = obtenerFechaActual();
+
+    await Promise.all([
+        cargarClientesDesdeSQL(),
+        cargarProductosDesdeSQL(),
+        cargarMetodosPagoDesdeSQL()
+    ]);
+
+    await cargarVentasDesdeSQL();
+    activarRealtimeVentas();
     limpiarDatosProductoSeleccionado();
 }
 
-/* ============================================================
-   CARGAR CLIENTES
-   ============================================================ */
-
 async function cargarClientesDesdeSQL() {
-    try {
-        const respuesta = await fetch("/api/clientes");
-        const datos = await respuesta.json();
+    const { data, error } = await supabaseClient
+        .from("sistema_clientes")
+        .select("*")
+        .order("nombre_cliente", { ascending: true });
 
-        if (datos.ok === false) {
-            alert(datos.mensaje || "Error al cargar clientes.");
-            return;
-        }
-
-        clientes = datos.clientes;
-
-        selectCliente.innerHTML = '<option value="">Seleccione un cliente</option>';
-
-        clientes
-            .slice()
-            .sort(function (a, b) {
-                return a.nombreCliente.localeCompare(b.nombreCliente);
-            })
-            .forEach(function (cliente) {
-                const opcion = document.createElement("option");
-
-                opcion.value = cliente.idCliente;
-                opcion.textContent = cliente.nombreCliente;
-
-                selectCliente.appendChild(opcion);
-            });
-
-    } catch (error) {
-        alert("No se pudo conectar con el servidor para cargar clientes.");
+    if (error) {
         console.error(error);
+        alert("No se pudieron cargar los clientes desde Supabase.");
+        return;
     }
-}
 
-/* ============================================================
-   CARGAR PRODUCTOS
-   ============================================================ */
+    clientes = (data || []).map(mapearCliente);
+
+    selectCliente.innerHTML = '<option value="">Seleccione un cliente</option>';
+
+    clientes.forEach(function (cliente) {
+        const opcion = document.createElement("option");
+        opcion.value = cliente.idCliente;
+        opcion.textContent = cliente.nombreCliente;
+        selectCliente.appendChild(opcion);
+    });
+}
 
 async function cargarProductosDesdeSQL() {
-    try {
-        const respuesta = await fetch("/api/productos");
-        const datos = await respuesta.json();
+    const { data, error } = await supabaseClient
+        .from("sistema_productos")
+        .select("*")
+        .order("nombre_producto", { ascending: true });
 
-        if (datos.ok === false) {
-            alert(datos.mensaje || "Error al cargar productos.");
-            return;
-        }
-
-        productos = datos.productos;
-
-        selectProducto.innerHTML = '<option value="">Seleccione un producto</option>';
-
-        productos
-            .slice()
-            .sort(function (a, b) {
-                return a.nombreProducto.localeCompare(b.nombreProducto);
-            })
-            .forEach(function (producto) {
-                const opcion = document.createElement("option");
-
-                opcion.value = producto.idProducto;
-                opcion.textContent = `${producto.nombreProducto} - Stock: ${producto.stock}`;
-
-                selectProducto.appendChild(opcion);
-            });
-
-        selectProducto.value = "";
-        limpiarDatosProductoSeleccionado();
-
-    } catch (error) {
-        alert("No se pudo conectar con el servidor para cargar productos.");
+    if (error) {
         console.error(error);
+        alert("No se pudieron cargar los productos desde Supabase.");
+        return;
     }
-}
 
-/* ============================================================
-   CARGAR MÉTODOS DE PAGO
-   ============================================================ */
+    productos = (data || []).map(mapearProducto);
+
+    const productoSeleccionado = selectProducto.value;
+    selectProducto.innerHTML = '<option value="">Seleccione un producto</option>';
+
+    productos.forEach(function (producto) {
+        const opcion = document.createElement("option");
+        opcion.value = producto.idProducto;
+        opcion.textContent = `${producto.nombreProducto} - Stock: ${producto.stock}`;
+        selectProducto.appendChild(opcion);
+    });
+
+    selectProducto.value = productoSeleccionado;
+    actualizarDatosProductoSeleccionado();
+}
 
 async function cargarMetodosPagoDesdeSQL() {
-    try {
-        const respuesta = await fetch("/api/metodos-pago");
-        const datos = await respuesta.json();
+    const { data, error } = await supabaseClient
+        .from("sistema_metodos_pago")
+        .select("*")
+        .eq("activo", true)
+        .order("nombre_metodo", { ascending: true });
 
-        if (datos.ok === false) {
-            alert(datos.mensaje || "Error al cargar métodos de pago.");
-            return;
-        }
-
-        metodosPago = datos.metodos;
-
-        selectPago.innerHTML = "";
-        filtroPago.innerHTML = '<option value="">Todos</option>';
-
-        metodosPago.forEach(function (metodo) {
-            const opcionVenta = document.createElement("option");
-
-            opcionVenta.value = metodo.idMetodoPago;
-            opcionVenta.textContent = metodo.nombreMetodo;
-
-            selectPago.appendChild(opcionVenta);
-
-            const opcionFiltro = document.createElement("option");
-
-            opcionFiltro.value = metodo.nombreMetodo;
-            opcionFiltro.textContent = metodo.nombreMetodo;
-
-            filtroPago.appendChild(opcionFiltro);
-        });
-
-    } catch (error) {
-        alert("No se pudo conectar con el servidor para cargar métodos de pago.");
+    if (error) {
         console.error(error);
+        alert("No se pudieron cargar los metodos de pago desde Supabase.");
+        return;
     }
-}
 
-/* ============================================================
-   CARGAR VENTAS
-   ============================================================ */
+    metodosPago = (data || []).map(mapearMetodoPago);
+
+    selectPago.innerHTML = '<option value="">Seleccione un metodo</option>';
+    filtroPago.innerHTML = '<option value="">Todos</option>';
+
+    metodosPago.forEach(function (metodo) {
+        const opcionVenta = document.createElement("option");
+        opcionVenta.value = metodo.idMetodoPago;
+        opcionVenta.textContent = metodo.nombreMetodo;
+        selectPago.appendChild(opcionVenta);
+
+        const opcionFiltro = document.createElement("option");
+        opcionFiltro.value = metodo.nombreMetodo;
+        opcionFiltro.textContent = metodo.nombreMetodo;
+        filtroPago.appendChild(opcionFiltro);
+    });
+}
 
 async function cargarVentasDesdeSQL() {
-    try {
-        const respuesta = await fetch("/api/ventas");
-        const datos = await respuesta.json();
+    const { data, error } = await supabaseClient
+        .from("sistema_ventas")
+        .select(`
+            *,
+            sistema_clientes (
+                nombre_cliente
+            ),
+            sistema_productos (
+                nombre_producto
+            ),
+            sistema_metodos_pago (
+                nombre_metodo
+            )
+        `)
+        .eq("anulada", false)
+        .order("fecha_venta", { ascending: false })
+        .order("fecha_registro", { ascending: false });
 
-        if (datos.ok === false) {
-            alert(datos.mensaje || "Error al cargar ventas.");
-            return;
-        }
-
-        ventas = datos.ventas;
-
-        mostrarVentas();
-
-    } catch (error) {
-        alert("No se pudo conectar con el servidor para cargar ventas.");
+    if (error) {
         console.error(error);
+        alert("No se pudieron cargar las ventas desde Supabase.");
+        return;
     }
+
+    ventas = (data || []).map(mapearVenta);
+    mostrarVentas();
 }
 
-/* ============================================================
-   SELECCIONAR PRODUCTO Y LLENAR DATOS
-   ============================================================ */
-
-selectProducto.addEventListener("change", function () {
-    actualizarDatosProductoSeleccionado();
-});
+selectProducto.addEventListener("change", actualizarDatosProductoSeleccionado);
+inputCantidad.addEventListener("input", calcularTotal);
 
 function actualizarDatosProductoSeleccionado() {
     const idProducto = Number(selectProducto.value);
@@ -204,7 +180,6 @@ function actualizarDatosProductoSeleccionado() {
 
     inputStock.value = Number(productoSeleccionado.stock);
     inputPrecio.value = Number(productoSeleccionado.precio).toFixed(2);
-
     calcularTotal();
 }
 
@@ -213,14 +188,6 @@ function limpiarDatosProductoSeleccionado() {
     inputPrecio.value = "";
     inputTotal.value = "";
 }
-
-/* ============================================================
-   CALCULAR TOTAL
-   ============================================================ */
-
-inputCantidad.addEventListener("input", function () {
-    calcularTotal();
-});
 
 function calcularTotal() {
     const cantidad = Number(inputCantidad.value);
@@ -233,10 +200,6 @@ function calcularTotal() {
     }
 }
 
-/* ============================================================
-   REGISTRAR VENTA EN SQL SERVER
-   ============================================================ */
-
 formVenta.addEventListener("submit", async function (e) {
     e.preventDefault();
 
@@ -245,14 +208,9 @@ formVenta.addEventListener("submit", async function (e) {
     const idMetodoPago = Number(selectPago.value);
     const cantidad = Number(inputCantidad.value);
     const fechaVenta = inputFecha.value;
+    const observacion = inputObservacion.value.trim() || null;
 
-    if (
-        !idCliente ||
-        !idProducto ||
-        !idMetodoPago ||
-        cantidad <= 0 ||
-        fechaVenta === ""
-    ) {
+    if (!idCliente || !idProducto || !idMetodoPago || cantidad <= 0 || fechaVenta === "") {
         alert("Completa todos los datos correctamente.");
         return;
     }
@@ -262,7 +220,7 @@ formVenta.addEventListener("submit", async function (e) {
     });
 
     if (!productoSeleccionado) {
-        alert("El producto seleccionado no es válido.");
+        alert("El producto seleccionado no es valido.");
         return;
     }
 
@@ -271,70 +229,42 @@ formVenta.addEventListener("submit", async function (e) {
         return;
     }
 
-    try {
-        const respuesta = await fetch("/api/ventas", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify({
-                idCliente: idCliente,
-                idMetodoPago: idMetodoPago,
-                idProducto: idProducto,
-                cantidad: cantidad,
-                fechaVenta: fechaVenta
-            })
-        });
+    const { error } = await supabaseClient.rpc("fn_registrar_venta_sistema", {
+        p_id_cliente: idCliente,
+        p_id_producto: idProducto,
+        p_id_metodo_pago: idMetodoPago,
+        p_cantidad: cantidad,
+        p_fecha_venta: fechaVenta,
+        p_observacion: observacion
+    });
 
-        const datos = await respuesta.json();
-
-        if (datos.ok === false) {
-            alert(datos.mensaje || "No se pudo registrar la venta.");
-            return;
-        }
-
-        alert(datos.mensaje);
-
-        formVenta.reset();
-
-        limpiarDatosProductoSeleccionado();
-
-        await cargarProductosDesdeSQL();
-        await cargarVentasDesdeSQL();
-
-    } catch (error) {
-        alert("Error al registrar venta en el servidor.");
+    if (error) {
         console.error(error);
+        alert(obtenerMensajeErrorSupabase(error, "No se pudo registrar la venta."));
+        return;
     }
+
+    alert("Venta registrada correctamente.");
+    formVenta.reset();
+    inputFecha.value = obtenerFechaActual();
+    limpiarDatosProductoSeleccionado();
+
+    await Promise.all([
+        cargarProductosDesdeSQL(),
+        cargarVentasDesdeSQL()
+    ]);
 });
 
-/* ============================================================
-   FILTROS
-   ============================================================ */
-
-buscadorVentas.addEventListener("input", function () {
-    mostrarVentas();
-});
-
-filtroFecha.addEventListener("change", function () {
-    mostrarVentas();
-});
-
-filtroPago.addEventListener("change", function () {
-    mostrarVentas();
-});
+buscadorVentas.addEventListener("input", mostrarVentas);
+filtroFecha.addEventListener("change", mostrarVentas);
+filtroPago.addEventListener("change", mostrarVentas);
 
 btnLimpiarFiltros.addEventListener("click", function () {
     buscadorVentas.value = "";
     filtroFecha.value = "";
     filtroPago.value = "";
-
     mostrarVentas();
 });
-
-/* ============================================================
-   MOSTRAR VENTAS
-   ============================================================ */
 
 function mostrarVentas() {
     tablaVentas.innerHTML = "";
@@ -345,21 +275,13 @@ function mostrarVentas() {
 
     const ventasFiltradas = ventas
         .filter(function (venta) {
-            const cliente = venta.nombreCliente.toLowerCase();
-            const producto = venta.nombreProducto.toLowerCase();
+            const cliente = String(venta.nombreCliente || "").toLowerCase();
+            const producto = String(venta.nombreProducto || "").toLowerCase();
             const fechaVenta = formatearFechaSQL(venta.fechaVenta);
 
-            const coincideTexto =
-                cliente.includes(textoBusqueda) ||
-                producto.includes(textoBusqueda);
-
-            const coincideFecha =
-                fechaSeleccionada === "" ||
-                fechaVenta === fechaSeleccionada;
-
-            const coincidePago =
-                pagoSeleccionado === "" ||
-                venta.nombreMetodo === pagoSeleccionado;
+            const coincideTexto = cliente.includes(textoBusqueda) || producto.includes(textoBusqueda);
+            const coincideFecha = fechaSeleccionada === "" || fechaVenta === fechaSeleccionada;
+            const coincidePago = pagoSeleccionado === "" || venta.nombreMetodo === pagoSeleccionado;
 
             return coincideTexto && coincideFecha && coincidePago;
         })
@@ -371,10 +293,7 @@ function mostrarVentas() {
                 return fechaB - fechaA;
             }
 
-            const registroA = new Date(a.fechaRegistro).getTime();
-            const registroB = new Date(b.fechaRegistro).getTime();
-
-            return registroB - registroA;
+            return new Date(b.fechaRegistro).getTime() - new Date(a.fechaRegistro).getTime();
         });
 
     if (ventasFiltradas.length === 0) {
@@ -390,14 +309,14 @@ function mostrarVentas() {
         const fila = document.createElement("tr");
 
         fila.innerHTML = `
-            <td>${venta.nombreCliente}</td>
-            <td>${venta.nombreProducto}</td>
-            <td>${venta.cantidad}</td>
-            <td>${venta.nombreMetodo}</td>
+            <td>${textoSeguro(venta.nombreCliente)}</td>
+            <td>${textoSeguro(venta.nombreProducto)}</td>
+            <td>${Number(venta.cantidad)}</td>
+            <td>${textoSeguro(venta.nombreMetodo)}</td>
             <td>${formatearFechaSQL(venta.fechaVenta)}</td>
             <td>S/ ${Number(venta.totalVenta).toFixed(2)}</td>
             <td>
-                <button class="boton-tabla eliminar" onclick="anularVenta(${venta.idVenta})">
+                <button class="boton-tabla eliminar" onclick="anularVenta(${Number(venta.idVenta)})">
                     <i class="ri-delete-bin-line"></i>
                     Anular
                 </button>
@@ -408,52 +327,119 @@ function mostrarVentas() {
     });
 }
 
-/* ============================================================
-   ANULAR VENTA
-   ============================================================ */
-
 async function anularVenta(idVenta) {
-    const confirmar = confirm(
-        "¿Estás seguro de anular esta venta? El stock será recuperado automáticamente."
-    );
+    const confirmar = confirm("Estas seguro de anular esta venta? El stock sera recuperado automaticamente.");
 
-    if (confirmar === false) {
+    if (!confirmar) {
         return;
     }
 
-    try {
-        const respuesta = await fetch(`/api/ventas/${idVenta}`, {
-            method: "DELETE"
-        });
+    const { error } = await supabaseClient.rpc("fn_anular_venta_sistema", {
+        p_id_venta: Number(idVenta)
+    });
 
-        const datos = await respuesta.json();
-
-        if (datos.ok === false) {
-            alert(datos.mensaje || "No se pudo anular la venta.");
-            return;
-        }
-
-        alert(datos.mensaje);
-
-        await cargarProductosDesdeSQL();
-        await cargarVentasDesdeSQL();
-
-    } catch (error) {
-        alert("Error al anular venta en el servidor.");
+    if (error) {
         console.error(error);
+        alert(obtenerMensajeErrorSupabase(error, "No se pudo anular la venta."));
+        return;
     }
+
+    alert("Venta anulada correctamente.");
+
+    await Promise.all([
+        cargarProductosDesdeSQL(),
+        cargarVentasDesdeSQL()
+    ]);
 }
 
-/* ============================================================
-   FORMATEAR FECHA
-   ============================================================ */
+function activarRealtimeVentas() {
+    if (canalVentas) {
+        return;
+    }
+
+    canalVentas = supabaseClient
+        .channel("sistema-ventas-admin")
+        .on("postgres_changes", {
+            event: "*",
+            schema: "public",
+            table: "sistema_ventas"
+        }, cargarVentasDesdeSQL)
+        .on("postgres_changes", {
+            event: "*",
+            schema: "public",
+            table: "sistema_productos"
+        }, cargarProductosDesdeSQL)
+        .subscribe();
+}
+
+function mapearCliente(cliente) {
+    return {
+        idCliente: cliente.id_cliente,
+        nombreCliente: cliente.nombre_cliente
+    };
+}
+
+function mapearProducto(producto) {
+    return {
+        idProducto: producto.id_producto,
+        ordenProduccion: producto.orden_produccion,
+        codigoDiseno: producto.codigo_diseno,
+        stock: producto.stock,
+        nombreProducto: producto.nombre_producto,
+        precio: producto.precio
+    };
+}
+
+function mapearMetodoPago(metodo) {
+    return {
+        idMetodoPago: metodo.id_metodo_pago,
+        nombreMetodo: metodo.nombre_metodo
+    };
+}
+
+function mapearVenta(venta) {
+    return {
+        idVenta: venta.id_venta,
+        nombreCliente: venta.sistema_clientes?.nombre_cliente || "Cliente eliminado",
+        nombreProducto: venta.sistema_productos?.nombre_producto || "Producto eliminado",
+        cantidad: venta.cantidad,
+        nombreMetodo: venta.sistema_metodos_pago?.nombre_metodo || "-",
+        fechaVenta: venta.fecha_venta,
+        fechaRegistro: venta.fecha_registro,
+        totalVenta: venta.total_venta
+    };
+}
 
 function formatearFechaSQL(fecha) {
-    const fechaObjeto = new Date(fecha);
+    if (!fecha) {
+        return "";
+    }
 
-    const anio = fechaObjeto.getFullYear();
-    const mes = String(fechaObjeto.getMonth() + 1).padStart(2, "0");
-    const dia = String(fechaObjeto.getDate()).padStart(2, "0");
+    return String(fecha).slice(0, 10);
+}
 
-    return `${anio}-${mes}-${dia}`;
+function obtenerFechaActual() {
+    return new Date().toISOString().slice(0, 10);
+}
+
+function textoSeguro(valor) {
+    if (typeof escaparHTML === "function") {
+        return escaparHTML(valor);
+    }
+
+    return String(valor ?? "");
+}
+
+function obtenerMensajeErrorSupabase(error, mensajeBase) {
+    const mensaje = error?.message || "";
+
+    if (mensaje.includes("No hay suficiente stock")) {
+        return "No hay suficiente stock para realizar esta venta.";
+    }
+
+    if (mensaje.includes("No autorizado")) {
+        return "Tu usuario no tiene permiso para realizar esta accion.";
+    }
+
+    return mensajeBase;
 }

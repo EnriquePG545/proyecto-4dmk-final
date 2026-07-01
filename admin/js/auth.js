@@ -12,6 +12,7 @@ async function cerrarSesion() {
     localStorage.removeItem("sesionActiva");
     localStorage.removeItem("usuarioActivo");
     localStorage.removeItem("nombreUsuarioActivo");
+    localStorage.removeItem("rolAdminActivo");
 
     window.location.href = "../login.html";
 }

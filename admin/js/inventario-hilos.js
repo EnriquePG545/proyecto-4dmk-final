@@ -14,6 +14,7 @@ const inputStockHilo = document.getElementById("stockHilo");
 let hilos = [];
 let editandoHilo = false;
 let idHiloEditando = null;
+let umbralStockHilos = 5;
 
 btnCancelarHilo.style.display = "none";
 
@@ -26,8 +27,21 @@ async function iniciarInventarioHilos() {
         return;
     }
 
+    await cargarUmbralStockHilos();
     await cargarHilos();
     activarRealtimeHilos();
+}
+
+async function cargarUmbralStockHilos() {
+    const { data, error } = await supabaseClient
+        .from("sistema_configuracion")
+        .select("valor")
+        .eq("clave", "stock_bajo_hilos")
+        .maybeSingle();
+
+    if (!error && data) {
+        umbralStockHilos = Number(data.valor) || 5;
+    }
 }
 
 formHilo.addEventListener("submit", async function (event) {
@@ -146,12 +160,14 @@ function mostrarHilos() {
 
     hilosFiltrados.forEach(function (hilo) {
         const fila = document.createElement("tr");
+        const stock = Number(hilo.stock || 0);
+        const claseStock = stock <= umbralStockHilos ? "stock-hilo stock-hilo-bajo" : "stock-hilo";
 
         fila.innerHTML = `
             <td><strong>${escaparHTML(hilo.codigo_hilo)}</strong></td>
             <td>${escaparHTML(hilo.nombre_color)}</td>
             <td><span class="marca-hilo">${escaparHTML(hilo.marca)}</span></td>
-            <td><span class="stock-hilo">${Number(hilo.stock || 0)}</span></td>
+            <td><span class="${claseStock}">${stock}</span></td>
             <td>${formatearFechaHilo(hilo.updated_at)}</td>
             <td>
                 <button type="button" class="boton-tabla editar" onclick="editarHilo(${Number(hilo.id_hilo)})">

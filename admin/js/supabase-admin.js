@@ -17,7 +17,7 @@ async function verificarAdminSupabase() {
 
     const { data: adminData, error: adminError } = await supabaseClient
         .from("admins")
-        .select("user_id")
+        .select("user_id, rol")
         .eq("user_id", usuario.id)
         .maybeSingle();
 
@@ -32,6 +32,7 @@ async function verificarAdminSupabase() {
     localStorage.setItem("sesionActiva", "true");
     localStorage.setItem("usuarioActivo", usuario.email || "admin");
     localStorage.setItem("nombreUsuarioActivo", "Administrador 4DMK");
+    localStorage.setItem("rolAdminActivo", adminData.rol || "admin");
 
     return usuario;
 }
@@ -40,6 +41,7 @@ function limpiarSesionAdmin() {
     localStorage.removeItem("sesionActiva");
     localStorage.removeItem("usuarioActivo");
     localStorage.removeItem("nombreUsuarioActivo");
+    localStorage.removeItem("rolAdminActivo");
 }
 
 function escaparHTML(valor) {

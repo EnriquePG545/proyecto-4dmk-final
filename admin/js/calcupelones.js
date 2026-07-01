@@ -2,8 +2,8 @@ const formCalcupelones = document.getElementById("formCalcupelones");
 const inputNumeroPrendas = document.getElementById("numeroPrendas");
 const tablaCalcupelones = document.getElementById("tablaCalcupelones");
 
-const precioPelon = 190;
 const basePelon = 10000;
+let precioPelon = 190;
 
 const bastidores = [
     { nombre: "C1", numerador: 12, denominador: 13 },
@@ -23,7 +23,20 @@ async function iniciarCalcupelones() {
         return;
     }
 
+    await cargarPrecioPelon();
     renderizarTablaCalcupelones(0);
+}
+
+async function cargarPrecioPelon() {
+    const { data, error } = await supabaseClient
+        .from("sistema_configuracion")
+        .select("valor")
+        .eq("clave", "precio_pelon")
+        .maybeSingle();
+
+    if (!error && data) {
+        precioPelon = Number(data.valor) || 190;
+    }
 }
 
 formCalcupelones.addEventListener("submit", function (event) {
