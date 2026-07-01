@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>4DMK | Cotización Rápida</title>
+
+    <meta name="description" content="Completa tu solicitud de cotización para bordados personalizados de 4DMK y genera un PDF listo para enviar por WhatsApp.">
+
+    <meta name="theme-color" content="#070b16">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="4DMK">
+
+    <link rel="manifest" href="/manifest.json">
+    <link rel="apple-touch-icon" href="/img/logo.png">
+
+    <!-- CSS -->
+    <link rel="stylesheet" href="css/estilos.css">
+
+    <!-- Iconos -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet">
+
+    <!-- Fuente -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <!-- Supabase -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+    <!-- jsPDF para generar PDF -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+    <!-- QR para generar código QR dentro del PDF -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode/1.5.3/qrcode.min.js"></script>
+</head>
+<body class="cotizacion-page">
+
+    <!-- HEADER SIMPLE -->
+    <header class="cotizar-header">
+        <a href="index.html" class="cotizar-logo">
+            <img src="img/logo.png" alt="Logo 4DMK">
+            <span>4DMK</span>
+        </a>
+
+        <a href="index.html" class="volver-inicio">
+            <i class="fa-solid fa-house"></i>
+            Volver al inicio
+        </a>
+    </header>
+
+    <!-- HERO COTIZAR -->
+    <section class="cotizar-hero">
+        <div class="cotizar-hero-content">
+            <p class="hero-tag">Solicitud rápida de bordado</p>
+
+            <h1>Cotiza tu bordado personalizado en pocos pasos</h1>
+
+            <p>
+                Completa el formulario con los datos de tu pedido. Al finalizar,
+                podrás descargar un PDF ordenado y enviarlo por WhatsApp a 4DMK.
+            </p>
+        </div>
+    </section>
+
+    <!-- CONTENIDO PRINCIPAL -->
+    <main class="cotizar-main">
+
+        <!-- PASOS -->
+        <section class="cotizar-pasos">
+            <div class="paso-box">
+                <span>1</span>
+                <p>Completa el formulario</p>
+            </div>
+
+            <div class="paso-box">
+                <span>2</span>
+                <p>Se registra en el sistema</p>
+            </div>
+
+            <div class="paso-box">
+                <span>3</span>
+                <p>Descarga y envía tu PDF</p>
+            </div>
+        </section>
+
+        <!-- FORMULARIO -->
+        <section class="formulario-cotizacion">
+            <div class="formulario-titulo">
+                <h2>Detalles del pedido</h2>
+                <p>Completa la información del bordado o prenda que deseas cotizar.</p>
+            </div>
+
+            <div id="datosClienteCotizacion"></div>
+
+            <form id="cotizacionForm">
+
+                <div class="form-grid">
+
+                    <div class="form-group">
+                        <label for="nombre">Nombre completo *</label>
+                        <input type="text" id="nombre" placeholder="Ejemplo: Juan Pérez" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="telefono">Teléfono o WhatsApp *</label>
+                        <input type="tel" id="telefono" placeholder="Ejemplo: 999 999 999" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="tipoCliente">Tipo de cliente *</label>
+                        <select id="tipoCliente" required>
+                            <option value="">Selecciona una opción</option>
+                            <option value="Cliente particular">Cliente particular</option>
+                            <option value="Empresa">Empresa</option>
+                            <option value="Colegio">Colegio</option>
+                            <option value="Emprendimiento">Emprendimiento</option>
+                            <option value="Institución">Institución</option>
+                            <option value="Otro">Otro</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="tipoPrenda">Tipo de prenda *</label>
+                        <input list="listaPrendas" id="tipoPrenda" placeholder="Elige o escribe una prenda" required>
+
+                        <datalist id="listaPrendas">
+                            <option value="Polo">
+                            <option value="Camisa">
+                            <option value="Casaca">
+                            <option value="Gorra">
+                            <option value="Uniforme">
+                            <option value="Mandil">
+                            <option value="Chaleco">
+                            <option value="Polera">
+                            <option value="Jean">
+                            <option value="Mochila">
+                            <option value="Otro">
+                        </datalist>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="cantidad">Cantidad aproximada *</label>
+                        <input type="number" id="cantidad" min="1" placeholder="Ejemplo: 24" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="tipoBordado">Tipo de bordado *</label>
+                        <input list="listaBordados" id="tipoBordado" placeholder="Elige o escribe el tipo de bordado" required>
+
+                        <datalist id="listaBordados">
+                            <option value="Logo empresarial">
+                            <option value="Nombre personalizado">
+                            <option value="Escudo escolar">
+                            <option value="Diseño personalizado">
+                            <option value="Texto bordado">
+                            <option value="Iniciales">
+                            <option value="Parche bordado">
+                            <option value="Bordado decorativo">
+                            <option value="Otro">
+                        </datalist>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="ubicacionBordado">Ubicación del bordado *</label>
+                        <select id="ubicacionBordado" required>
+                            <option value="">Selecciona una opción</option>
+                            <option value="Pecho izquierdo">Pecho izquierdo</option>
+                            <option value="Pecho derecho">Pecho derecho</option>
+                            <option value="Espalda">Espalda</option>
+                            <option value="Manga">Manga</option>
+                            <option value="Centro de la prenda">Centro de la prenda</option>
+                            <option value="Gorra frontal">Gorra frontal</option>
+                            <option value="Otro">Otro</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="colorPrenda">Color de la prenda</label>
+                        <input type="text" id="colorPrenda" placeholder="Ejemplo: Negro, blanco, azul">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="fecha">Fecha aproximada de entrega</label>
+                        <input type="date" id="fecha">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="archivoReferencia">¿Enviarás imagen, logo, Excel o PDF?</label>
+                        <select id="archivoReferencia">
+                            <option value="Sí, adjuntaré archivo por WhatsApp">Sí, adjuntaré archivo por WhatsApp</option>
+                            <option value="No tengo archivo todavía">No tengo archivo todavía</option>
+                            <option value="Solo tengo una idea descrita">Solo tengo una idea descrita</option>
+                        </select>
+                    </div>
+
+                </div>
+
+                <div class="form-group full">
+                    <label for="descripcion">Descripción del diseño o pedido</label>
+                    <textarea id="descripcion" rows="5" placeholder="Ejemplo: Quiero bordar el logo de mi negocio en polos negros, en el pecho izquierdo..."></textarea>
+                </div>
+
+                <div class="form-group full">
+                    <label for="observaciones">Observaciones adicionales</label>
+                    <textarea id="observaciones" rows="4" placeholder="Ejemplo: Tengo el logo en imagen, deseo saber el precio por unidad, etc."></textarea>
+                </div>
+
+                <div class="aviso-pdf">
+                    <i class="fa-solid fa-circle-info"></i>
+                    <p>
+                        Al generar el PDF, tu solicitud también quedará registrada en el panel administrativo de 4DMK.
+                        Luego deberás enviar el PDF por WhatsApp para finalizar la cotización.
+                    </p>
+                </div>
+
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-primary" id="generarBtn">
+                        <i class="fa-solid fa-file-pdf"></i>
+                        Generar PDF de cotización
+                    </button>
+
+                    <button type="reset" class="btn btn-secondary">
+                        <i class="fa-solid fa-rotate-left"></i>
+                        Limpiar formulario
+                    </button>
+                </div>
+
+                <p id="cotizacionMensaje" class="login-mensaje"></p>
+
+            </form>
+        </section>
+
+    </main>
+
+    <!-- FOOTER SIMPLE -->
+    <footer class="cotizar-footer">
+        <p>© 2026 4DMK - Bordados computarizados y prendas personalizadas.</p>
+    </footer>
+
+    <script src="js/supabase-config.js"></script>
+    <script src="js/cotizar.js?v=pedidos2"></script>
+    <script src="js/pwa.js"></script>
+</body>
+</html>

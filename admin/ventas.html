@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="robots" content="noindex, nofollow">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>4DMK | Ventas</title>
+
+    <link rel="stylesheet" href="css/estilos.css">
+    <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
+</head>
+
+<body>
+
+    <div class="contenedor">
+
+        <aside class="sidebar">
+
+            <div class="logo">
+                <h2>4DMK</h2>
+                <p>Sistema de Ventas</p>
+            </div>
+
+            <nav class="menu">
+
+                <a href="index.html">
+                    <i class="ri-dashboard-line"></i>
+                    Panel Principal
+                </a>
+
+                <a href="ventas.html" class="activo">
+                    <i class="ri-shopping-cart-line"></i>
+                    Ventas
+                </a>
+
+                <a href="productos.html">
+                    <i class="ri-archive-line"></i>
+                    Productos
+                </a>
+
+                <a href="clientes.html">
+                    <i class="ri-user-line"></i>
+                    Clientes
+                </a>
+
+                <a href="reportes.html">
+                    <i class="ri-bar-chart-line"></i>
+                    Reportes
+                </a>
+
+                <a href="configuracion.html">
+                    <i class="ri-settings-3-line"></i>
+                    Configuración
+                </a>
+
+            </nav>
+
+        </aside>
+
+        <main class="contenido">
+
+            <header class="barra-superior">
+
+                <div>
+                    <h1>Registro de Ventas</h1>
+                    <p>Registra ventas usando clientes y productos del sistema</p>
+                </div>
+
+                <div class="usuario">
+                    <i class="ri-user-smile-line"></i>
+                    <span>Administrador</span>
+                    <button class="boton-salir" onclick="cerrarSesion()">Salir</button>
+                </div>
+
+            </header>
+
+            <section class="panel">
+
+                <div class="titulo-seccion">
+                    <h2>Nueva Venta</h2>
+                    <p>Selecciona un cliente y un producto registrado</p>
+                </div>
+
+                <form class="formulario-ventas" id="formVenta">
+
+                    <div class="grupo-formulario">
+                        <label>Cliente</label>
+                        <select id="cliente">
+                            <option value="">Seleccione un cliente</option>
+                        </select>
+                    </div>
+
+                    <div class="grupo-formulario">
+                        <label>Producto</label>
+                        <select id="producto">
+                            <option value="">Seleccione un producto</option>
+                        </select>
+                    </div>
+
+                    <div class="grupo-formulario">
+                        <label>Stock disponible</label>
+                        <input type="number" id="stockDisponible" placeholder="0" disabled>
+                    </div>
+
+                    <div class="grupo-formulario">
+                        <label>Precio Unitario</label>
+                        <input type="number" id="precio" placeholder="0.00" disabled>
+                    </div>
+
+                    <div class="grupo-formulario">
+                        <label>Cantidad</label>
+                        <input type="number" id="cantidad" placeholder="0">
+                    </div>
+
+                    <div class="grupo-formulario">
+                        <label>Método de Pago</label>
+                        <select id="pago">
+                            <option>Efectivo</option>
+                            <option>Yape</option>
+                            <option>Plin</option>
+                            <option>Transferencia</option>
+                        </select>
+                    </div>
+
+                    <div class="grupo-formulario">
+                        <label>Fecha</label>
+                        <input type="date" id="fecha">
+                    </div>
+
+                    <div class="grupo-formulario">
+                        <label>Total</label>
+                        <input type="number" id="total" placeholder="0.00" disabled>
+                    </div>
+
+                    <div class="grupo-formulario ancho-completo">
+                        <label>Observación</label>
+                        <textarea id="observacion" rows="4" placeholder="Observaciones adicionales"></textarea>
+                    </div>
+
+                    <div class="ancho-completo">
+                        <button type="submit" class="boton-guardar">
+                            <i class="ri-save-line"></i>
+                            Registrar Venta
+                        </button>
+                    </div>
+
+                </form>
+
+            </section>
+
+            <section class="panel">
+
+                <div class="titulo-seccion">
+                    <h2>Historial de Ventas</h2>
+                    <p>Busca, filtra y administra las ventas registradas</p>
+                </div>
+
+                <div class="filtros-ventas">
+
+                    <div class="buscador-contenedor">
+                        <i class="ri-search-line"></i>
+                        <input type="text" id="buscadorVentas" placeholder="Buscar por cliente o producto...">
+                    </div>
+
+                    <div class="grupo-formulario">
+                        <label>Filtrar por fecha</label>
+                        <input type="date" id="filtroFecha">
+                    </div>
+
+                    <div class="grupo-formulario">
+                        <label>Método de pago</label>
+                        <select id="filtroPago">
+                            <option value="">Todos</option>
+                            <option value="Efectivo">Efectivo</option>
+                            <option value="Yape">Yape</option>
+                            <option value="Plin">Plin</option>
+                            <option value="Transferencia">Transferencia</option>
+                        </select>
+                    </div>
+
+                    <div class="grupo-formulario">
+                        <label>&nbsp;</label>
+                        <button type="button" class="boton-limpiar" id="btnLimpiarFiltros">
+                            <i class="ri-filter-off-line"></i>
+                            Limpiar filtros
+                        </button>
+                    </div>
+
+                </div>
+
+                <div class="tabla-contenedor">
+
+                    <table>
+
+                        <thead>
+                            <tr>
+                                <th>Cliente</th>
+                                <th>Producto</th>
+                                <th>Cantidad</th>
+                                <th>Pago</th>
+                                <th>Fecha</th>
+                                <th>Total</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+
+                        <tbody id="tablaVentas"></tbody>
+
+                    </table>
+
+                </div>
+
+            </section>
+
+        </main>
+
+    </div>
+
+    <script src="js/auth.js"></script>
+    <script src="js/ventas.js?v=sql2"></script>
+
+</body>
+
+</html>

@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Prueba Supabase 4DMK</title>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #070b16;
+            color: white;
+            padding: 30px;
+        }
+
+        button {
+            padding: 12px 18px;
+            margin: 8px 0;
+            cursor: pointer;
+        }
+
+        pre {
+            background: #111827;
+            padding: 18px;
+            border-radius: 10px;
+            white-space: pre-wrap;
+        }
+    </style>
+</head>
+
+<body>
+
+    <h1>Prueba de conexión Supabase - 4DMK</h1>
+
+    <button onclick="probarConexion()">1. Probar conexión</button>
+    <br>
+
+    <button onclick="probarLogin()">2. Probar login</button>
+    <br>
+
+    <button onclick="probarAdmin()">3. Probar tabla admins</button>
+
+    <h2>Resultado:</h2>
+    <pre id="resultado">Esperando prueba...</pre>
+
+    <script src="js/supabase-config.js"></script>
+
+    <script>
+        const resultado = document.getElementById("resultado");
+
+        function escribir(data) {
+            resultado.textContent = JSON.stringify(data, null, 2);
+            console.log(data);
+        }
+
+        async function probarConexion() {
+            try {
+                escribir({
+                    mensaje: "Supabase cargado correctamente",
+                    url: SUPABASE_URL,
+                    clienteExiste: !!supabaseClient
+                });
+            } catch (error) {
+                escribir({
+                    error: error.message
+                });
+            }
+        }
+
+        async function probarLogin() {
+            const { data, error } = await supabaseClient.auth.signInWithPassword({
+                email: "inversiones4dmk@gmail.com",
+                password: "leopoldo1980"
+            });
+
+            if (error) {
+                escribir({
+                    prueba: "login",
+                    estado: "error",
+                    mensaje: error.message,
+                    errorCompleto: error
+                });
+                return;
+            }
+
+            escribir({
+                prueba: "login",
+                estado: "correcto",
+                usuario: data.user
+            });
+        }
+
+        async function probarAdmin() {
+            const { data: sessionData } = await supabaseClient.auth.getSession();
+
+            if (!sessionData.session) {
+                escribir({
+                    prueba: "admin",
+                    estado: "sin sesión",
+                    mensaje: "Primero presiona Probar login."
+                });
+                return;
+            }
+
+            const userId = sessionData.session.user.id;
+
+            const { data, error } = await supabaseClient
+                .from("admins")
+                .select("*")
+                .eq("user_id", userId)
+                .maybeSingle();
+
+            if (error) {
+                escribir({
+                    prueba: "admin",
+                    estado: "error",
+                    mensaje: error.message,
+                    errorCompleto: error
+                });
+                return;
+            }
+
+            escribir({
+                prueba: "admin",
+                estado: data ? "admin encontrado" : "no está en admins",
+                userId: userId,
+                admin: data
+            });
+        }
+    </script>
+
+</body>
+</html>

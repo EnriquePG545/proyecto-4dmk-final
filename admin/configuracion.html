@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="robots" content="noindex, nofollow">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>4DMK | Configuración</title>
+
+    <link rel="stylesheet" href="css/estilos.css">
+    <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
+</head>
+
+<body>
+
+    <div class="contenedor">
+
+        <aside class="sidebar">
+
+            <div class="logo">
+                <h2>4DMK</h2>
+                <p>Sistema de Ventas</p>
+            </div>
+
+            <nav class="menu">
+
+                <a href="index.html">
+                    <i class="ri-dashboard-line"></i>
+                    Panel Principal
+                </a>
+
+                <a href="ventas.html">
+                    <i class="ri-shopping-cart-line"></i>
+                    Ventas
+                </a>
+
+                <a href="productos.html">
+                    <i class="ri-archive-line"></i>
+                    Productos
+                </a>
+
+                <a href="clientes.html">
+                    <i class="ri-user-line"></i>
+                    Clientes
+                </a>
+
+                <a href="reportes.html">
+                    <i class="ri-bar-chart-line"></i>
+                    Reportes
+                </a>
+
+                <a href="configuracion.html" class="activo">
+                    <i class="ri-settings-3-line"></i>
+                    Configuración
+                </a>
+
+            </nav>
+
+        </aside>
+
+        <main class="contenido">
+
+            <header class="barra-superior">
+
+                <div>
+                    <h1>Configuración del Sistema</h1>
+                    <p>Administra respaldos, exportaciones y mantenimiento de datos</p>
+                </div>
+
+                <div class="usuario">
+                    <i class="ri-user-smile-line"></i>
+                    <span>Administrador</span>
+                    <button class="boton-salir" onclick="cerrarSesion()">Salir</button>
+                </div>
+
+            </header>
+
+            <section class="tarjetas">
+
+                <div class="tarjeta">
+                    <div>
+                        <h3>Productos guardados</h3>
+                        <p id="resumenProductos">0</p>
+                    </div>
+                    <i class="ri-archive-line"></i>
+                </div>
+
+                <div class="tarjeta">
+                    <div>
+                        <h3>Clientes guardados</h3>
+                        <p id="resumenClientes">0</p>
+                    </div>
+                    <i class="ri-team-line"></i>
+                </div>
+
+                <div class="tarjeta">
+                    <div>
+                        <h3>Ventas guardadas</h3>
+                        <p id="resumenVentas">0</p>
+                    </div>
+                    <i class="ri-shopping-cart-line"></i>
+                </div>
+
+                <div class="tarjeta alerta">
+                    <div>
+                        <h3>Estado de datos</h3>
+                        <p id="estadoRespaldo">Activo</p>
+                    </div>
+                    <i class="ri-shield-check-line"></i>
+                </div>
+
+            </section>
+
+            <section class="panel">
+
+                <div class="titulo-seccion">
+                    <h2>Respaldo y Exportación</h2>
+                    <p>Genera copias, archivos de consulta o reportes imprimibles del sistema</p>
+                </div>
+
+                <div class="config-grid config-grid-tres">
+
+                    <div class="config-card">
+                        <div class="config-icono">
+                            <i class="ri-download-cloud-2-line"></i>
+                        </div>
+
+                        <h3>Exportar respaldo JSON</h3>
+                        <p>Descarga una copia técnica para restaurar productos, clientes y ventas posteriormente.</p>
+
+                        <button class="boton-guardar" id="btnExportar">
+                            <i class="ri-file-download-line"></i>
+                            Exportar JSON
+                        </button>
+                    </div>
+
+                    <div class="config-card">
+                        <div class="config-icono">
+                            <i class="ri-file-excel-2-line"></i>
+                        </div>
+
+                        <h3>Exportar a Excel</h3>
+                        <p>Genera un archivo de Excel con productos, clientes y ventas para revisión externa.</p>
+
+                        <button class="boton-guardar boton-excel" id="btnExportarExcel">
+                            <i class="ri-table-line"></i>
+                            Exportar Excel
+                        </button>
+                    </div>
+
+                    <div class="config-card">
+                        <div class="config-icono">
+                            <i class="ri-file-pdf-2-line"></i>
+                        </div>
+
+                        <h3>Generar PDF</h3>
+                        <p>Crea un reporte imprimible con el resumen general del sistema y datos principales.</p>
+
+                        <button class="boton-guardar boton-pdf" id="btnGenerarPDF">
+                            <i class="ri-printer-line"></i>
+                            Generar PDF
+                        </button>
+                    </div>
+
+                </div>
+
+            </section>
+
+            <section class="panel">
+
+                <div class="titulo-seccion">
+                    <h2>Importar Respaldo</h2>
+                    <p>Restaura información únicamente desde un archivo de respaldo JSON válido</p>
+                </div>
+
+                <div class="config-grid config-grid-uno">
+
+                    <div class="config-card">
+                        <div class="config-icono">
+                            <i class="ri-upload-cloud-2-line"></i>
+                        </div>
+
+                        <h3>Restaurar respaldo JSON</h3>
+                        <p>Selecciona un archivo .json generado por el sistema para recuperar la información guardada.</p>
+
+                        <input type="file" id="archivoImportar" accept=".json,application/json" class="input-archivo">
+
+                        <label for="archivoImportar" class="boton-archivo">
+                            <i class="ri-folder-open-line"></i>
+                            Seleccionar JSON
+                        </label>
+
+                        <p class="archivo-seleccionado" id="nombreArchivo">
+                            Ningún archivo seleccionado
+                        </p>
+
+                        <button class="boton-guardar" id="btnImportar">
+                            <i class="ri-refresh-line"></i>
+                            Restaurar datos
+                        </button>
+                    </div>
+
+                </div>
+
+            </section>
+            
+            <section class="panel">
+
+    <div class="titulo-seccion">
+        <h2>Mantenimiento de datos</h2>
+        <p>Limpia registros antiguos sin afectar productos, clientes, usuarios ni métodos de pago</p>
+    </div>
+
+    <div class="config-grid config-grid-uno">
+
+        <div class="config-card">
+            <div class="config-icono">
+                <i class="ri-history-line"></i>
+            </div>
+
+            <h3>Limpiar ventas anuladas antiguas</h3>
+
+            <p>
+                Elimina únicamente las ventas anuladas con más de 4 meses de antigüedad.
+                Esta acción no elimina productos, clientes, usuarios ni métodos de pago.
+            </p>
+
+            <button class="boton-guardar boton-limpieza" id="btnLimpiarVentasAnuladas">
+                <i class="ri-delete-bin-6-line"></i>
+                Limpiar ventas anuladas
+            </button>
+        </div>
+
+    </div>
+
+</section>
+
+            <section class="panel panel-peligro">
+
+                <div class="titulo-seccion">
+                    <h2>Zona de Seguridad</h2>
+                    <p>Usa esta opción solo si deseas reiniciar la información del sistema</p>
+                </div>
+
+                <div class="zona-peligro">
+
+                    <div>
+                        <h3>Limpiar todos los datos</h3>
+                        <p>Esta acción eliminará productos, clientes y ventas guardadas en este navegador.</p>
+                    </div>
+
+                    <button class="boton-eliminar-datos" id="btnLimpiarSistema">
+                        <i class="ri-delete-bin-6-line"></i>
+                        Limpiar sistema
+                    </button>
+
+                </div>
+
+            </section>
+
+        </main>
+
+    </div>
+
+    <script src="js/auth.js"></script>
+    <script src="js/configuracion.js?v=limpieza1"></script>
+
+</body>
+
+</html>

@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="robots" content="noindex, nofollow">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>4DMK | Clientes</title>
+
+    <link rel="stylesheet" href="css/estilos.css">
+    <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
+</head>
+
+<body>
+
+    <div class="contenedor">
+
+        <aside class="sidebar">
+
+            <div class="logo">
+                <h2>4DMK</h2>
+                <p>Sistema de Ventas</p>
+            </div>
+
+            <nav class="menu">
+
+                <a href="index.html">
+                    <i class="ri-dashboard-line"></i>
+                    Panel Principal
+                </a>
+
+                <a href="ventas.html">
+                    <i class="ri-shopping-cart-line"></i>
+                    Ventas
+                </a>
+
+                <a href="productos.html">
+                    <i class="ri-archive-line"></i>
+                    Productos
+                </a>
+
+                <a href="clientes.html" class="activo">
+                    <i class="ri-user-line"></i>
+                    Clientes
+                </a>
+
+                <a href="reportes.html">
+                    <i class="ri-bar-chart-line"></i>
+                    Reportes
+                </a>
+
+                <a href="configuracion.html">
+                    <i class="ri-settings-3-line"></i>
+                    Configuración
+                </a>
+
+            </nav>
+
+        </aside>
+
+        <main class="contenido">
+
+            <header class="barra-superior">
+
+                <div>
+                    <h1>Gestión de Clientes</h1>
+                    <p>Registra y administra los clientes de 4DMK</p>
+                </div>
+
+                <div class="usuario">
+                    <i class="ri-user-smile-line"></i>
+                    <span>Administrador</span>
+                    <button class="boton-salir" onclick="cerrarSesion()">Salir</button>
+                </div>
+
+            </header>
+
+            <section class="panel">
+
+                <div class="titulo-seccion">
+                    <h2 id="tituloFormularioCliente">Nuevo Cliente</h2>
+                    <p>Registra o actualiza clientes para las ventas</p>
+                </div>
+
+                <form class="formulario-ventas" id="formCliente">
+
+                    <div class="grupo-formulario">
+                        <label>Nombre del Cliente</label>
+                        <input type="text" id="nombreCliente" placeholder="Ejemplo: Colegio San Martín">
+                    </div>
+
+                    <div class="grupo-formulario">
+                        <label>DNI o RUC</label>
+                        <input type="text" id="documentoCliente" placeholder="Ejemplo: 20481234567">
+                    </div>
+
+                    <div class="grupo-formulario">
+                        <label>Teléfono</label>
+                        <input type="text" id="telefonoCliente" placeholder="Ejemplo: 987654321">
+                    </div>
+
+                    <div class="grupo-formulario">
+                        <label>Tipo de Cliente</label>
+                        <select id="tipoCliente">
+                            <option>Persona Natural</option>
+                            <option>Colegio</option>
+                            <option>Empresa</option>
+                            <option>Institución</option>
+                        </select>
+                    </div>
+
+                    <div class="grupo-formulario ancho-completo">
+                        <label>Dirección</label>
+                        <input type="text" id="direccionCliente" placeholder="Ejemplo: Villa El Salvador">
+                    </div>
+
+                    <div class="ancho-completo">
+
+                        <button type="submit" class="boton-guardar" id="btnGuardarCliente">
+                            <i class="ri-save-line"></i>
+                            Registrar Cliente
+                        </button>
+
+                        <button type="button" class="boton-cancelar" id="btnCancelarCliente">
+                            <i class="ri-close-circle-line"></i>
+                            Cancelar edición
+                        </button>
+
+                    </div>
+
+                </form>
+
+            </section>
+
+            <section class="panel">
+
+                <div class="titulo-seccion">
+                    <h2>Lista de Clientes</h2>
+                    <p>Busca clientes en tiempo real por nombre, documento, teléfono, tipo o dirección</p>
+                </div>
+
+                <div class="buscador-contenedor">
+                    <i class="ri-search-line"></i>
+                    <input type="text" id="buscadorClientes" placeholder="Buscar cliente, DNI/RUC, teléfono, tipo o dirección...">
+                </div>
+
+                <div class="tabla-contenedor">
+
+                    <table>
+
+                        <thead>
+                            <tr>
+                                <th>Cliente</th>
+                                <th>DNI/RUC</th>
+                                <th>Teléfono</th>
+                                <th>Tipo</th>
+                                <th>Dirección</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+
+                        <tbody id="tablaClientes"></tbody>
+
+                    </table>
+
+                </div>
+
+            </section>
+
+        </main>
+
+    </div>
+
+    <script src="js/auth.js"></script>
+    <script src="js/clientes.js?v=normal2"></script>
+
+</body>
+
+</html>

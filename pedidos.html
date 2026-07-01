@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+
+    <meta name="robots" content="noindex, nofollow">
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>4DMK | Panel Administrativo</title>
+
+    <meta name="theme-color" content="#070b16">
+
+    <link rel="icon" href="img/logo.png" type="image/png">
+
+    <!-- CSS -->
+    <link rel="stylesheet" href="css/estilos.css">
+
+    <!-- Iconos -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet">
+
+    <!-- Fuente -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <!-- Supabase -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body class="admin-page">
+
+    <div class="admin-layout">
+
+        <!-- SIDEBAR -->
+        <aside class="admin-sidebar">
+            <div class="admin-brand">
+                <img src="img/logo.png" alt="Logo 4DMK">
+                <div>
+                    <h2>4DMK</h2>
+                    <p>Panel privado</p>
+                </div>
+            </div>
+
+            <nav class="admin-menu">
+                <a href="#resumen" class="active">
+                    <i class="fa-solid fa-chart-simple"></i>
+                    Resumen
+                </a>
+
+                <a href="#pedidos">
+                    <i class="fa-solid fa-file-lines"></i>
+                    Pedidos
+                </a>
+
+                <a href="#consultas">
+                    <i class="fa-solid fa-magnifying-glass"></i>
+                    Consultas
+                </a>
+
+                <a href="index.html">
+                    <i class="fa-solid fa-globe"></i>
+                    Ver página
+                </a>
+            </nav>
+
+            <button id="logoutBtn" class="admin-logout">
+                <i class="fa-solid fa-right-from-bracket"></i>
+                Cerrar sesión
+            </button>
+        </aside>
+
+        <!-- CONTENIDO -->
+        <main class="admin-main">
+
+            <header class="admin-topbar">
+                <div>
+                    <p class="admin-tag">Administración</p>
+                    <h1>Panel de cotizaciones</h1>
+                </div>
+
+                <div class="admin-user">
+                    <i class="fa-solid fa-user-shield"></i>
+                    <span id="adminCorreo">Administrador</span>
+                </div>
+            </header>
+
+            <!-- MENSAJE -->
+            <div id="adminMensaje" class="admin-mensaje">
+                Cargando información...
+            </div>
+
+            <!-- RESUMEN -->
+            <section class="admin-section" id="resumen">
+
+            <div class="admin-cards admin-cards-5">
+                <div class="admin-card">
+                    <i class="fa-solid fa-file-circle-plus"></i>
+                    <div>
+                        <p>Total pedidos</p>
+                        <h3 id="totalPedidos">0</h3>
+                    </div>
+                </div>
+
+                <div class="admin-card">
+                    <i class="fa-solid fa-calendar-days"></i>
+                    <div>
+                        <p>Este mes</p>
+                        <h3 id="totalMesActual">0</h3>
+                    </div>
+                </div>
+
+                <div class="admin-card">
+                    <i class="fa-solid fa-clock"></i>
+                    <div>
+                        <p>Pendientes</p>
+                        <h3 id="totalPendientes">0</h3>
+                    </div>
+                </div>
+
+                <div class="admin-card">
+                    <i class="fa-solid fa-check-double"></i>
+                    <div>
+                        <p>Cotizados</p>
+                        <h3 id="totalCotizados">0</h3>
+                    </div>
+                </div>
+
+                <div class="admin-card">
+                    <i class="fa-solid fa-circle-check"></i>
+                    <div>
+                        <p>Finalizados</p>
+                        <h3 id="totalFinalizados">0</h3>
+                    </div>
+                </div>
+            </div>
+
+                <div class="admin-chart-box">
+                    <div class="admin-box-title">
+                        <div>
+                            <p>Estadística mensual</p>
+                            <h2>Pedidos por mes</h2>
+                        </div>
+                    </div>
+
+                    <canvas id="graficoMensual"></canvas>
+                </div>
+
+            </section>
+
+            <!-- PEDIDOS -->
+            <section class="admin-section" id="pedidos">
+
+                <div class="admin-box-title">
+                    <div>
+                        <p>Gestión de pedidos</p>
+                        <h2>Listado de cotizaciones</h2>
+                    </div>
+
+                    <button id="recargarBtn" class="admin-btn">
+                        <i class="fa-solid fa-rotate"></i>
+                        Recargar
+                    </button>
+                </div>
+
+                <!-- FILTROS -->
+                <div class="admin-filtros" id="consultas">
+                    <div class="admin-search">
+                        <i class="fa-solid fa-magnifying-glass"></i>
+                        <input type="text" id="busquedaPedido" placeholder="Buscar por código, cliente, teléfono, prenda o bordado...">
+                    </div>
+
+                    <select id="filtroEstado">
+                        <option value="Todos">Todos los estados</option>
+                        <option value="Pendiente">Pendiente</option>
+                        <option value="Revisado">Revisado</option>
+                        <option value="Cotizado">Cotizado</option>
+                        <option value="En proceso">En proceso</option>
+                        <option value="Finalizado">Finalizado</option>
+                        <option value="Cancelado">Cancelado</option>
+                    </select>
+
+                    <select id="filtroMes">
+                        <option value="Todos">Todos los meses</option>
+                    </select>
+                </div>
+
+                <!-- TABLA -->
+                <div class="admin-table-container">
+                    <table class="admin-table">
+                        <thead>
+                            <tr>
+                                <th>Código</th>
+                                <th>Cliente</th>
+                                <th>Teléfono</th>
+                                <th>Prenda</th>
+                                <th>Cantidad</th>
+                                <th>Bordado</th>
+                                <th>Estado</th>
+                                <th>Fecha</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+
+                        <tbody id="tablaPedidos">
+                            <tr>
+                                <td colspan="9">Cargando pedidos...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+            </section>
+
+        </main>
+
+    </div>
+
+    <!-- MODAL DETALLE -->
+    <div class="pedido-modal" id="pedidoModal">
+        <div class="pedido-modal-card">
+            <button class="cerrar-modal" id="cerrarModal">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+
+            <h2>Detalle del pedido</h2>
+
+            <div id="detallePedido" class="detalle-pedido">
+                Cargando...
+            </div>
+        </div>
+    </div>
+
+    <script src="js/supabase-config.js"></script>
+    <script src="js/admin.js"></script>
+</body>
+</html>

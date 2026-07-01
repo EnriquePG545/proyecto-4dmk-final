@@ -1,0 +1,27 @@
+{
+  "id": "/login.html",
+  "name": "4DMK - Gestión de Pedidos e Inventario",
+  "short_name": "4DMK",
+  "description": "Aplicación para clientes y administración de pedidos, cotizaciones, inventario y ventas de 4DMK.",
+  "start_url": "/login.html",
+  "scope": "/",
+  "display": "standalone",
+  "display_override": ["standalone", "minimal-ui"],
+  "orientation": "portrait",
+  "background_color": "#070b16",
+  "theme_color": "#070b16",
+  "icons": [
+    {
+      "src": "/img/logo.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/img/logo.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

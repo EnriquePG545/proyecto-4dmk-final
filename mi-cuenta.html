@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+
+    <meta name="robots" content="noindex, nofollow">
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>4DMK | Mi Cuenta</title>
+
+    <meta name="theme-color" content="#070b16">
+
+    <link rel="icon" href="img/logo.png" type="image/png">
+
+    <link rel="manifest" href="manifest.json">
+    <link rel="apple-touch-icon" href="img/logo.png">
+
+    <link rel="stylesheet" href="css/estilos.css">
+
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet">
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+    <style>
+        body.mi-cuenta-page {
+            min-height: 100vh;
+            background: radial-gradient(circle at top, #16213e 0%, #070b16 55%, #020617 100%);
+            color: #fff;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        .cuenta-container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 42px 20px;
+        }
+
+        .cuenta-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 18px;
+            flex-wrap: wrap;
+            margin-bottom: 28px;
+        }
+
+        .cuenta-logo {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+
+        .cuenta-logo img {
+            width: 62px;
+            height: auto;
+        }
+
+        .cuenta-logo h1 {
+            margin: 0;
+            font-size: 30px;
+        }
+
+        .cuenta-logo p {
+            margin: 4px 0 0 0;
+            color: #cbd5e1;
+        }
+
+        .cuenta-card {
+            background: rgba(15, 23, 42, 0.9);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            border-radius: 26px;
+            padding: 32px;
+            box-shadow: 0 24px 70px rgba(0, 0, 0, 0.35);
+        }
+
+        .cuenta-card h2 {
+            margin-top: 0;
+            font-size: 26px;
+        }
+
+        .cuenta-card p {
+            color: #cbd5e1;
+            line-height: 1.6;
+        }
+
+        .cuenta-form {
+            margin-top: 24px;
+        }
+
+        .cuenta-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 18px;
+        }
+
+        .cuenta-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .cuenta-group.full {
+            grid-column: 1 / -1;
+        }
+
+        .cuenta-group label {
+            font-weight: 700;
+            color: #e5e7eb;
+            font-size: 14px;
+        }
+
+        .cuenta-group input {
+            width: 100%;
+            padding: 14px 15px;
+            border-radius: 14px;
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            background: rgba(2, 6, 23, 0.85);
+            color: #fff;
+            outline: none;
+            font-family: inherit;
+        }
+
+        .cuenta-group input:focus {
+            border-color: rgba(250, 204, 21, 0.65);
+        }
+
+        .cuenta-group input[readonly] {
+            opacity: 0.75;
+            cursor: not-allowed;
+        }
+
+        .cuenta-aviso {
+            margin: 20px 0;
+            background: rgba(250, 204, 21, 0.1);
+            border: 1px solid rgba(250, 204, 21, 0.22);
+            border-radius: 18px;
+            padding: 16px 18px;
+            color: #fde68a;
+            display: flex;
+            gap: 12px;
+            align-items: flex-start;
+        }
+
+        .cuenta-actions {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin-top: 24px;
+        }
+
+        .cuenta-btn {
+            border: none;
+            cursor: pointer;
+            text-decoration: none;
+            padding: 13px 20px;
+            border-radius: 999px;
+            font-weight: 800;
+            font-family: inherit;
+            display: inline-flex;
+            align-items: center;
+            gap: 9px;
+        }
+
+        .cuenta-btn.principal {
+            background: #facc15;
+            color: #111827;
+        }
+
+        .cuenta-btn.secundario {
+            background: rgba(255, 255, 255, 0.08);
+            color: #fff;
+        }
+
+        .cuenta-mensaje {
+            margin-top: 18px;
+            font-weight: 700;
+        }
+
+        .cuenta-mensaje.success {
+            color: #22c55e;
+        }
+
+        .cuenta-mensaje.error {
+            color: #ef4444;
+        }
+
+        .cuenta-mensaje.info {
+            color: #38bdf8;
+        }
+
+        @media (max-width: 720px) {
+            .cuenta-card {
+                padding: 24px 18px;
+            }
+
+            .cuenta-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+
+<body class="mi-cuenta-page">
+
+    <main class="cuenta-container">
+
+        <header class="cuenta-header">
+            <div class="cuenta-logo">
+                <img src="img/logo.png" alt="Logo 4DMK">
+
+                <div>
+                    <h1>Mi cuenta</h1>
+                    <p>Actualiza tus datos personales para tus próximas cotizaciones.</p>
+                </div>
+            </div>
+
+            <a href="mis-pedidos.html" class="cuenta-btn secundario">
+                <i class="fa-solid fa-arrow-left"></i>
+                Volver a mis pedidos
+            </a>
+        </header>
+
+        <section class="cuenta-card">
+            <h2>Datos del cliente</h2>
+
+            <p>
+                Estos datos se usarán automáticamente cuando solicites una cotización.
+                Así no tendrás que escribir tu nombre y teléfono cada vez.
+            </p>
+
+            <form id="miCuentaForm" class="cuenta-form">
+
+                <div class="cuenta-grid">
+
+                    <div class="cuenta-group">
+                        <label for="nombreCompleto">Nombre completo</label>
+                        <input type="text" id="nombreCompleto" required>
+                    </div>
+
+                    <div class="cuenta-group">
+                        <label for="telefono">Teléfono / WhatsApp</label>
+                        <input type="tel" id="telefono" required>
+                    </div>
+
+                    <div class="cuenta-group full">
+                        <label for="correo">Correo de la cuenta</label>
+                        <input type="email" id="correo" readonly>
+                    </div>
+
+                </div>
+
+                <div class="cuenta-aviso">
+                    <i class="fa-solid fa-circle-info"></i>
+                    <span>
+                        Por seguridad, el correo no se cambia desde esta sección.
+                        Si necesitas cambiarlo, deberás comunicarte con 4DMK.
+                    </span>
+                </div>
+
+                <div class="cuenta-actions">
+                    <button type="submit" class="cuenta-btn principal">
+                        <i class="fa-solid fa-floppy-disk"></i>
+                        Guardar cambios
+                    </button>
+
+                    <a href="cotizar.html" class="cuenta-btn secundario">
+                        <i class="fa-solid fa-file-invoice"></i>
+                        Ir a cotizar
+                    </a>
+                </div>
+
+                <p id="cuentaMensaje" class="cuenta-mensaje"></p>
+
+            </form>
+        </section>
+
+    </main>
+
+    <script src="js/supabase-config.js"></script>
+    <script src="js/mi-cuenta.js"></script>
+    <script src="js/pwa.js"></script>
+</body>
+</html>

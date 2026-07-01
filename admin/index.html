@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="robots" content="noindex, nofollow">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>4DMK | Panel Principal</title>
+
+    <link rel="stylesheet" href="css/estilos.css">
+    <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
+</head>
+
+<body>
+
+    <div class="contenedor">
+
+        <aside class="sidebar">
+
+            <div class="logo">
+                <h2>4DMK</h2>
+                <p>Sistema de Ventas</p>
+            </div>
+
+            <nav class="menu">
+
+                <a href="index.html" class="activo">
+                    <i class="ri-dashboard-line"></i>
+                    Panel Principal
+                </a>
+
+                <a href="ventas.html">
+                    <i class="ri-shopping-cart-line"></i>
+                    Ventas
+                </a>
+
+                <a href="productos.html">
+                    <i class="ri-archive-line"></i>
+                    Productos
+                </a>
+
+                <a href="clientes.html">
+                    <i class="ri-user-line"></i>
+                    Clientes
+                </a>
+
+                <a href="reportes.html">
+                    <i class="ri-bar-chart-line"></i>
+                    Reportes
+                </a>
+
+                <a href="configuracion.html">
+                    <i class="ri-settings-3-line"></i>
+                    Configuración
+                </a>
+
+            </nav>
+
+        </aside>
+
+        <main class="contenido">
+
+            <header class="barra-superior">
+
+                <div>
+                    <h1>Panel Principal</h1>
+                    <p>Resumen general del sistema de inventario y ventas de 4DMK</p>
+                </div>
+
+                <div class="usuario">
+                    <i class="ri-user-smile-line"></i>
+                    <span>Administrador</span>
+                    <button class="boton-salir" onclick="cerrarSesion()">Salir</button>
+                </div>
+
+            </header>
+
+            <section class="tarjetas">
+
+                <div class="tarjeta">
+                    <div>
+                        <h3>Ventas del día</h3>
+                        <p id="ventasDia">S/ 0.00</p>
+                    </div>
+                    <i class="ri-money-dollar-circle-line"></i>
+                </div>
+
+                <div class="tarjeta">
+                    <div>
+                        <h3>Productos</h3>
+                        <p id="cantidadProductos">0 registrados</p>
+                    </div>
+                    <i class="ri-archive-line"></i>
+                </div>
+
+                <div class="tarjeta">
+                    <div>
+                        <h3>Clientes</h3>
+                        <p id="cantidadClientes">0 registrados</p>
+                    </div>
+                    <i class="ri-team-line"></i>
+                </div>
+
+                <div class="tarjeta alerta">
+                    <div>
+                        <h3>Stock bajo</h3>
+                        <p id="cantidadStockBajo">0 productos</p>
+                    </div>
+                    <i class="ri-error-warning-line"></i>
+                </div>
+
+            </section>
+
+            <section class="panel">
+
+                <div class="titulo-seccion">
+                    <h2>Acciones rápidas</h2>
+                    <p>Selecciona una opción para trabajar rápidamente</p>
+                </div>
+
+                <div class="acciones">
+
+                    <a href="ventas.html" class="boton-accion">
+                        <i class="ri-add-circle-line"></i>
+                        Registrar venta
+                    </a>
+
+                    <a href="productos.html" class="boton-accion">
+                        <i class="ri-shirt-line"></i>
+                        Ver productos
+                    </a>
+
+                    <a href="clientes.html" class="boton-accion">
+                        <i class="ri-user-add-line"></i>
+                        Registrar cliente
+                    </a>
+
+                    <a href="reportes.html" class="boton-accion">
+                        <i class="ri-file-chart-line"></i>
+                        Ver reportes
+                    </a>
+
+                </div>
+
+            </section>
+
+            <section class="panel">
+
+                <div class="titulo-seccion">
+                    <h2>Últimas ventas</h2>
+                    <p>Ventas más recientes registradas en el sistema</p>
+                </div>
+
+                <div class="tabla-contenedor">
+
+                    <table>
+
+                        <thead>
+                            <tr>
+                                <th>Fecha</th>
+                                <th>Cliente</th>
+                                <th>Producto</th>
+                                <th>Cantidad</th>
+                                <th>Total</th>
+                                <th>Estado</th>
+                            </tr>
+                        </thead>
+
+                        <tbody id="tablaUltimasVentas"></tbody>
+
+                    </table>
+
+                </div>
+
+            </section>
+
+            <section class="panel">
+
+                <div class="titulo-seccion">
+                    <h2>Productos con stock bajo</h2>
+                    <p>Productos que requieren atención por tener pocas unidades disponibles</p>
+                </div>
+
+                <div class="tabla-contenedor">
+
+                    <table>
+
+                        <thead>
+                            <tr>
+                                <th>Orden Producción</th>
+                                <th>Código Diseño</th>
+                                <th>Producto</th>
+                                <th>Stock</th>
+                                <th>Precio</th>
+                            </tr>
+                        </thead>
+
+                        <tbody id="tablaStockBajo"></tbody>
+
+                    </table>
+
+                </div>
+
+            </section>
+
+        </main>
+
+    </div>
+
+    <script src="js/auth.js"></script>
+    <script src="js/main.js?v=sql1"></script>
+
+</body>
+
+</html>

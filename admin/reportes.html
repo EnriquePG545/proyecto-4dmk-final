@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="robots" content="noindex, nofollow">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>4DMK | Reportes</title>
+
+    <link rel="stylesheet" href="css/estilos.css">
+    <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
+</head>
+
+<body>
+
+    <div class="contenedor">
+
+        <aside class="sidebar">
+
+            <div class="logo">
+                <h2>4DMK</h2>
+                <p>Sistema de Ventas</p>
+            </div>
+
+            <nav class="menu">
+
+                <a href="index.html">
+                    <i class="ri-dashboard-line"></i>
+                    Panel Principal
+                </a>
+
+                <a href="ventas.html">
+                    <i class="ri-shopping-cart-line"></i>
+                    Ventas
+                </a>
+
+                <a href="productos.html">
+                    <i class="ri-archive-line"></i>
+                    Productos
+                </a>
+
+                <a href="clientes.html">
+                    <i class="ri-user-line"></i>
+                    Clientes
+                </a>
+
+                <a href="reportes.html" class="activo">
+                    <i class="ri-bar-chart-line"></i>
+                    Reportes
+                </a>
+
+                <a href="configuracion.html">
+                    <i class="ri-settings-3-line"></i>
+                    Configuración
+                </a>
+
+            </nav>
+
+        </aside>
+
+        <main class="contenido">
+
+            <header class="barra-superior">
+
+                <div>
+                    <h1>Reportes del Sistema</h1>
+                    <p>Consulta ventas, ingresos, clientes e inventario de forma rápida y ordenada</p>
+                </div>
+
+                <div class="usuario">
+                    <i class="ri-user-smile-line"></i>
+                    <span>Administrador</span>
+                    <button class="boton-salir" onclick="cerrarSesion()">Salir</button>
+                </div>
+
+            </header>
+
+            <section class="tarjetas">
+
+                <div class="tarjeta">
+                    <div>
+                        <h3>Ventas filtradas</h3>
+                        <p id="totalVentas">0</p>
+                    </div>
+                    <i class="ri-shopping-cart-line"></i>
+                </div>
+
+                <div class="tarjeta">
+                    <div>
+                        <h3>Ingresos filtrados</h3>
+                        <p id="ingresosTotales">S/ 0.00</p>
+                    </div>
+                    <i class="ri-money-dollar-circle-line"></i>
+                </div>
+
+                <div class="tarjeta">
+                    <div>
+                        <h3>Productos registrados</h3>
+                        <p id="totalProductos">0</p>
+                    </div>
+                    <i class="ri-archive-line"></i>
+                </div>
+
+                <div class="tarjeta alerta">
+                    <div>
+                        <h3>Stock bajo</h3>
+                        <p id="stockBajo">0</p>
+                    </div>
+                    <i class="ri-error-warning-line"></i>
+                </div>
+
+            </section>
+
+            <section class="panel">
+
+                <div class="titulo-seccion">
+                    <h2>Filtros de reportes</h2>
+                    <p>Filtra la información por fecha o método de pago</p>
+                </div>
+
+                <div class="filtros-reportes">
+
+                    <div class="grupo-formulario">
+                        <label>Fecha específica</label>
+                        <input type="date" id="filtroFechaReporte">
+                    </div>
+
+                    <div class="grupo-formulario">
+                        <label>Método de pago</label>
+                        <select id="filtroPagoReporte">
+                            <option value="">Todos</option>
+                            <option value="Efectivo">Efectivo</option>
+                            <option value="Yape">Yape</option>
+                            <option value="Plin">Plin</option>
+                            <option value="Transferencia">Transferencia</option>
+                        </select>
+                    </div>
+
+                    <div class="grupo-formulario">
+                        <label>&nbsp;</label>
+                        <button type="button" class="boton-limpiar" id="btnLimpiarReporte">
+                            <i class="ri-filter-off-line"></i>
+                            Limpiar filtros
+                        </button>
+                    </div>
+
+                </div>
+
+            </section>
+
+            <section class="panel">
+
+                <div class="titulo-seccion">
+                    <h2>Consultas rápidas</h2>
+                    <p>Selecciona una consulta para visualizar información específica según los filtros aplicados</p>
+                </div>
+
+                <div class="acciones">
+
+                    <button class="boton-accion boton-reporte" onclick="mostrarVentasRecientes()">
+                        <i class="ri-time-line"></i>
+                        Ventas recientes
+                    </button>
+
+                    <button class="boton-accion boton-reporte" onclick="mostrarProductosMasVendidos()">
+                        <i class="ri-line-chart-line"></i>
+                        Productos más vendidos
+                    </button>
+
+                    <button class="boton-accion boton-reporte" onclick="mostrarClientesFrecuentes()">
+                        <i class="ri-team-line"></i>
+                        Clientes frecuentes
+                    </button>
+
+                    <button class="boton-accion boton-reporte" onclick="mostrarIngresosPorFecha()">
+                        <i class="ri-calendar-check-line"></i>
+                        Ingresos por fecha
+                    </button>
+
+                </div>
+
+            </section>
+
+            <section class="panel">
+
+                <div class="titulo-seccion">
+                    <h2 id="tituloReporte">Resultado del reporte</h2>
+                    <p id="descripcionReporte">Selecciona una consulta para mostrar los datos correspondientes</p>
+                </div>
+
+                <div class="tabla-contenedor">
+
+                    <table>
+                        <thead id="encabezadoReporte"></thead>
+                        <tbody id="tablaReporte"></tbody>
+                    </table>
+
+                </div>
+
+            </section>
+
+            <section class="panel">
+
+                <div class="titulo-seccion">
+                    <h2>Productos con bajo stock</h2>
+                    <p>Lista de productos que tienen 5 unidades o menos disponibles</p>
+                </div>
+
+                <div class="tabla-contenedor">
+
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Orden Producción</th>
+                                <th>Código Diseño</th>
+                                <th>Producto</th>
+                                <th>Stock</th>
+                                <th>Precio</th>
+                            </tr>
+                        </thead>
+
+                        <tbody id="tablaStockBajoReporte"></tbody>
+                    </table>
+
+                </div>
+
+            </section>
+
+        </main>
+
+    </div>
+
+    <script src="js/auth.js"></script>
+    <script src="js/reportes.js?v=sql1"></script>
+
+</body>
+
+</html>
