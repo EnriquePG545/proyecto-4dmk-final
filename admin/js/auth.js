@@ -4,7 +4,11 @@ if (sesionActiva !== "true") {
     window.location.href = "../login.html";
 }
 
-function cerrarSesion() {
+async function cerrarSesion() {
+    if (typeof supabaseClient !== "undefined") {
+        await supabaseClient.auth.signOut();
+    }
+
     localStorage.removeItem("sesionActiva");
     localStorage.removeItem("usuarioActivo");
     localStorage.removeItem("nombreUsuarioActivo");

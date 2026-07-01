@@ -9,6 +9,7 @@
 
     <link rel="stylesheet" href="css/estilos.css">
     <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 
 <body>
@@ -27,6 +28,11 @@
                 <a href="index.html">
                     <i class="ri-dashboard-line"></i>
                     Panel Principal
+                </a>
+
+                <a href="../pedidos.html">
+                    <i class="ri-file-list-3-line"></i>
+                    Cotizaciones
                 </a>
 
                 <a href="ventas.html">
@@ -277,7 +283,11 @@
 
     </div>
 
+    <script src="../js/supabase-config.js"></script>
     <script src="js/auth.js"></script>
+    <script src="js/supabase-admin.js"></script>
+    <script src="js/secure-admin-session.js"></script>
+    <script src="js/api-guard.js"></script>
     <script src="js/configuracion.js?v=limpieza1"></script>
 
 </body>
