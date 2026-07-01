@@ -1,0 +1,14 @@
+{
+  "scripts": {
+    "supabase:projects": "supabase projects list",
+    "db:dry:cotizaciones": "powershell -ExecutionPolicy Bypass -File scripts/supabase-db.ps1 -Target cotizaciones -Action dry-run",
+    "db:push:cotizaciones": "powershell -ExecutionPolicy Bypass -File scripts/supabase-db.ps1 -Target cotizaciones -Action push",
+    "db:pull:cotizaciones": "powershell -ExecutionPolicy Bypass -File scripts/supabase-db.ps1 -Target cotizaciones -Action pull",
+    "db:dry:proyecto-x": "powershell -ExecutionPolicy Bypass -File scripts/supabase-db.ps1 -Target proyecto-x -Action dry-run",
+    "db:push:proyecto-x": "powershell -ExecutionPolicy Bypass -File scripts/supabase-db.ps1 -Target proyecto-x -Action push",
+    "db:pull:proyecto-x": "powershell -ExecutionPolicy Bypass -File scripts/supabase-db.ps1 -Target proyecto-x -Action pull"
+  },
+  "devDependencies": {
+    "supabase": "^2.109.0"
+  }
+}
