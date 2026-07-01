@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="robots" content="noindex, nofollow">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>4DMK | Pelones</title>
+
+    <link rel="stylesheet" href="css/estilos.css">
+    <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+
+<body>
+
+    <div class="contenedor">
+
+        <aside class="sidebar">
+
+            <div class="logo">
+                <h2>4DMK</h2>
+                <p>Sistema de Ventas</p>
+            </div>
+
+            <nav class="menu">
+
+                <a href="index.html">
+                    <i class="ri-dashboard-line"></i>
+                    Panel Principal
+                </a>
+
+                <a href="ventas.html">
+                    <i class="ri-shopping-cart-line"></i>
+                    Ventas
+                </a>
+
+                <a href="productos.html">
+                    <i class="ri-archive-line"></i>
+                    Productos
+                </a>
+
+                <a href="clientes.html">
+                    <i class="ri-user-line"></i>
+                    Clientes
+                </a>
+
+                <a href="inventario-hilos.html">
+                    <i class="ri-palette-line"></i>
+                    Inventario de Hilos
+                </a>
+
+                <a href="pelones.html" class="activo">
+                    <i class="ri-stack-line"></i>
+                    Pelones
+                </a>
+
+                <a href="reportes.html">
+                    <i class="ri-bar-chart-line"></i>
+                    Reportes
+                </a>
+
+                <a href="configuracion.html">
+                    <i class="ri-settings-3-line"></i>
+                    Configuracion
+                </a>
+
+            </nav>
+
+        </aside>
+
+        <main class="contenido">
+
+            <header class="barra-superior">
+
+                <div>
+                    <h1>Pelones</h1>
+                    <p>Control manual del estado de pelones del taller</p>
+                </div>
+
+                <div class="usuario">
+                    <i class="ri-user-smile-line"></i>
+                    <span>Administrador</span>
+                    <button class="boton-salir" onclick="cerrarSesion()">Salir</button>
+                </div>
+
+            </header>
+
+            <section class="panel">
+
+                <div class="titulo-seccion">
+                    <h2>Estado de Pelones</h2>
+                    <p>Actualiza cada pelon despues de revisar el material disponible</p>
+                </div>
+
+                <div class="tabla-contenedor">
+
+                    <table>
+
+                        <thead>
+                            <tr>
+                                <th>Tipo de pelon</th>
+                                <th>Estado actual</th>
+                                <th>Actualizar estado</th>
+                                <th>Ultima actualizacion</th>
+                                <th>Accion</th>
+                            </tr>
+                        </thead>
+
+                        <tbody id="tablaPelones">
+                            <tr>
+                                <td colspan="5">Cargando pelones...</td>
+                            </tr>
+                        </tbody>
+
+                    </table>
+
+                </div>
+
+            </section>
+
+        </main>
+
+    </div>
+
+    <script src="../js/supabase-config.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/supabase-admin.js"></script>
+    <script src="js/pelones.js"></script>
+
+</body>
+
+</html>

@@ -4,6 +4,7 @@ const pedidosCard = document.querySelector(".pedidos-card");
 
 let usuarioCliente = null;
 let perfilCliente = null;
+let canalPedidosCliente = null;
 
 verificarSesionCliente();
 
@@ -38,7 +39,8 @@ async function verificarSesionCliente() {
         perfilCliente = perfil;
         datosCliente.textContent = `${perfil.nombre_completo} | ${perfil.correo} | ${perfil.telefono}`;
 
-        cargarPedidosCliente();
+        await cargarPedidosCliente();
+        activarRealtimePedidosCliente();
 
     } catch (error) {
         console.error("Error verificando sesión:", error);
@@ -94,6 +96,24 @@ async function cargarPedidosCliente() {
     } catch (error) {
         console.error("Error general cargando pedidos:", error);
     }
+}
+
+function activarRealtimePedidosCliente() {
+    if (!usuarioCliente || canalPedidosCliente) {
+        return;
+    }
+
+    canalPedidosCliente = supabaseClient
+        .channel(`pedidos-cliente-${usuarioCliente.id}`)
+        .on("postgres_changes", {
+            event: "*",
+            schema: "public",
+            table: "pedidos_cotizacion",
+            filter: `user_id=eq.${usuarioCliente.id}`
+        }, async function () {
+            await cargarPedidosCliente();
+        })
+        .subscribe();
 }
 
 function crearPedidoHTML(pedido) {

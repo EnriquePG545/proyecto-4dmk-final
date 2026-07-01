@@ -21,10 +21,12 @@ const detallePedido = document.getElementById("detallePedido");
 let pedidos = [];
 let pedidosFiltrados = [];
 let graficoMensual = null;
+let canalPedidosAdmin = null;
 
 document.addEventListener("DOMContentLoaded", async () => {
     await verificarSesionAdmin();
     await cargarPedidos();
+    activarRealtimePedidosAdmin();
 });
 
 async function verificarSesionAdmin() {
@@ -92,6 +94,23 @@ async function cargarPedidos() {
     } else {
         mostrarMensaje(`Se cargaron ${pedidos.length} pedido(s).`, "success");
     }
+}
+
+function activarRealtimePedidosAdmin() {
+    if (canalPedidosAdmin) {
+        return;
+    }
+
+    canalPedidosAdmin = supabaseClient
+        .channel("pedidos-admin-tiempo-real")
+        .on("postgres_changes", {
+            event: "*",
+            schema: "public",
+            table: "pedidos_cotizacion"
+        }, async function () {
+            await cargarPedidos();
+        })
+        .subscribe();
 }
 
 function actualizarResumen() {
