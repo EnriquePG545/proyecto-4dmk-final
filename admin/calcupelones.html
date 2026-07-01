@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="robots" content="noindex, nofollow">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>4DMK | Pelones</title>
+    <title>4DMK | Calcupelones</title>
 
     <link rel="stylesheet" href="css/estilos.css">
     <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
@@ -50,12 +50,12 @@
                     Inventario de Hilos
                 </a>
 
-                <a href="pelones.html" class="activo">
+                <a href="pelones.html">
                     <i class="ri-stack-line"></i>
                     Pelones
                 </a>
 
-                <a href="calcupelones.html">
+                <a href="calcupelones.html" class="activo">
                     <i class="ri-calculator-line"></i>
                     Calcupelones
                 </a>
@@ -79,8 +79,8 @@
             <header class="barra-superior">
 
                 <div>
-                    <h1>Pelones</h1>
-                    <p>Control manual del estado de pelones del taller</p>
+                    <h1>Calcupelones</h1>
+                    <p>Calcula el costo de pelon segun la cantidad de prendas</p>
                 </div>
 
                 <div class="usuario">
@@ -91,32 +91,33 @@
 
             </header>
 
-            <section class="panel">
+            <section class="panel panel-calcupelones">
 
-                <div class="titulo-seccion">
-                    <h2>Estado de Pelones</h2>
-                    <p>Actualiza cada pelon despues de revisar el material disponible</p>
-                </div>
+                <form class="formulario-calcupelones" id="formCalcupelones">
+                    <div class="grupo-formulario">
+                        <label>Numero de prendas</label>
+                        <input type="number" id="numeroPrendas" placeholder="N" min="0" step="1" inputmode="numeric">
+                    </div>
 
-                <div class="tabla-contenedor">
+                    <button type="submit" class="boton-guardar boton-aplicar-calcupelones">
+                        <i class="ri-equalizer-line"></i>
+                        Aplicar
+                    </button>
+                </form>
+
+                <div class="tabla-contenedor tabla-calcupelones">
 
                     <table>
 
                         <thead>
                             <tr>
-                                <th>Tipo de pelon</th>
-                                <th>Estado actual</th>
-                                <th>Actualizar estado</th>
-                                <th>Ultima actualizacion</th>
-                                <th>Accion</th>
+                                <th>BASTIDOR</th>
+                                <th>100% PELON</th>
+                                <th>PRECIO POR LAS PRENDAS</th>
                             </tr>
                         </thead>
 
-                        <tbody id="tablaPelones">
-                            <tr>
-                                <td colspan="5">Cargando pelones...</td>
-                            </tr>
-                        </tbody>
+                        <tbody id="tablaCalcupelones"></tbody>
 
                     </table>
 
@@ -131,7 +132,7 @@
     <script src="../js/supabase-config.js"></script>
     <script src="js/auth.js"></script>
     <script src="js/supabase-admin.js"></script>
-    <script src="js/pelones.js"></script>
+    <script src="js/calcupelones.js"></script>
 
 </body>
 
