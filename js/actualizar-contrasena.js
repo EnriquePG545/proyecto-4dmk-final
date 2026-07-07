@@ -15,6 +15,7 @@ const errorRecuperacion = hashActualizacion.get("error") || parametrosActualizac
 const descripcionErrorRecuperacion = hashActualizacion.get("error_description") || parametrosActualizacion.get("error_description");
 
 let recuperacionLista = false;
+let enlaceInvalido = false;
 
 if (origenActualizacion === "admin" && volverLoginActualizacion) {
     volverLoginActualizacion.href = "admin/login.html";
@@ -78,6 +79,8 @@ actualizarPasswordForm.addEventListener("submit", async function (e) {
             return;
         }
 
+        const destinoDespuesDeActualizar = await resolverDestinoDespuesDeActualizar();
+
         await supabaseClient.auth.signOut();
         sessionStorage.removeItem("recuperacionOrigen4DMK");
         actualizarPasswordForm.reset();
@@ -85,7 +88,7 @@ actualizarPasswordForm.addEventListener("submit", async function (e) {
         mostrarMensajeActualizacion("Contrasena actualizada correctamente. Ya puedes iniciar sesion.", "success");
 
         setTimeout(function () {
-            window.location.href = origenActualizacion === "admin" ? "admin/login.html" : "login.html";
+            window.location.href = destinoDespuesDeActualizar;
         }, 1800);
     } catch (error) {
         console.error("Error inesperado actualizando contrasena:", error);
@@ -105,7 +108,7 @@ async function inicializarRecuperacion() {
                 ? decodeURIComponent(descripcionErrorRecuperacion.replace(/\+/g, " "))
                 : "El enlace de recuperacion ya expiro o no es valido.";
 
-            mostrarMensajeActualizacion(`${mensajeExpirado} Solicita un enlace nuevo desde el login.`, "error");
+            mostrarEnlaceInvalido(`${mensajeExpirado} Solicita un enlace nuevo para continuar.`);
             return;
         }
 
@@ -122,12 +125,14 @@ async function inicializarRecuperacion() {
             return;
         }
 
-        mostrarMensajeActualizacion("Este enlace no esta activo o ya expiro. Solicita uno nuevo desde el login.", "error");
+        mostrarEnlaceInvalido("Este enlace no esta activo o ya expiro. Solicita uno nuevo para continuar.");
     } catch (error) {
         console.error("Error verificando recuperacion:", error);
-        mostrarMensajeActualizacion("No pudimos verificar el enlace. Solicita uno nuevo desde el login.", "error");
+        mostrarEnlaceInvalido("No pudimos verificar el enlace. Solicita uno nuevo para continuar.");
     } finally {
-        bloquearFormularioActualizacion(!recuperacionLista);
+        if (!enlaceInvalido) {
+            bloquearFormularioActualizacion(!recuperacionLista);
+        }
     }
 }
 
@@ -135,10 +140,54 @@ function bloquearFormularioActualizacion(bloqueado) {
     nuevaPassword.disabled = bloqueado;
     confirmarPassword.disabled = bloqueado;
     btnActualizarPassword.disabled = bloqueado;
+    btnActualizarPassword.type = "submit";
+    btnActualizarPassword.onclick = null;
 
     btnActualizarPassword.innerHTML = bloqueado
         ? '<i class="fa-solid fa-spinner fa-spin"></i> Verificando...'
         : '<i class="fa-solid fa-key"></i> Guardar nueva contrasena';
+}
+
+function mostrarEnlaceInvalido(mensaje) {
+    enlaceInvalido = true;
+    recuperacionLista = false;
+    nuevaPassword.disabled = true;
+    confirmarPassword.disabled = true;
+    btnActualizarPassword.disabled = false;
+    btnActualizarPassword.type = "button";
+    btnActualizarPassword.innerHTML = '<i class="fa-solid fa-envelope"></i> Solicitar nuevo enlace';
+    btnActualizarPassword.onclick = function () {
+        window.location.href = origenActualizacion === "admin"
+            ? "recuperar-contrasena.html?origen=admin"
+            : "recuperar-contrasena.html";
+    };
+    mostrarMensajeActualizacion(mensaje, "error");
+}
+
+async function resolverDestinoDespuesDeActualizar() {
+    if (origenActualizacion === "admin") {
+        return "admin/login.html";
+    }
+
+    try {
+        const { data: userData } = await supabaseClient.auth.getUser();
+        const userId = userData && userData.user ? userData.user.id : null;
+
+        if (!userId) {
+            return "login.html";
+        }
+
+        const { data: adminData } = await supabaseClient
+            .from("admins")
+            .select("user_id")
+            .eq("user_id", userId)
+            .maybeSingle();
+
+        return adminData ? "admin/login.html" : "login.html";
+    } catch (error) {
+        console.warn("No se pudo resolver el destino despues de actualizar:", error);
+        return "login.html";
+    }
 }
 
 function mostrarMensajeActualizacion(texto, tipo) {
