@@ -30,6 +30,11 @@
                     Panel Principal
                 </a>
 
+                <a href="dashboard.html">
+                    <i class="ri-pie-chart-line"></i>
+                    Dashboard
+                </a>
+
                 <a href="../pedidos.html">
                     <i class="ri-file-list-3-line"></i>
                     Cotizaciones
@@ -48,6 +53,11 @@
                 <a href="clientes.html">
                     <i class="ri-user-line"></i>
                     Clientes
+                </a>
+
+                <a href="proveedores.html">
+                    <i class="ri-store-2-line"></i>
+                    Proveedores
                 </a>
 
                 <a href="inventario-hilos.html">
@@ -130,6 +140,14 @@
                     <i class="ri-error-warning-line"></i>
                 </div>
 
+                <div class="tarjeta alerta">
+                    <div>
+                        <h3>Stock bajo hilos</h3>
+                        <p id="cantidadStockBajoHilos">0 hilos</p>
+                    </div>
+                    <i class="ri-palette-line"></i>
+                </div>
+
             </section>
 
             <section class="panel">
@@ -154,6 +172,11 @@
                     <a href="clientes.html" class="boton-accion">
                         <i class="ri-user-add-line"></i>
                         Registrar cliente
+                    </a>
+
+                    <a href="proveedores.html" class="boton-accion">
+                        <i class="ri-store-2-line"></i>
+                        Proveedores
                     </a>
 
                     <a href="reportes.html" class="boton-accion">
@@ -224,6 +247,35 @@
 
             </section>
 
+            <section class="panel">
+
+                <div class="titulo-seccion">
+                    <h2>Hilos con stock bajo</h2>
+                    <p>Colores que requieren reposicion segun el umbral configurado</p>
+                </div>
+
+                <div class="tabla-contenedor">
+
+                    <table>
+
+                        <thead>
+                            <tr>
+                                <th>Codigo hilo</th>
+                                <th>Color</th>
+                                <th>Marca</th>
+                                <th>Stock</th>
+                                <th>Proveedor</th>
+                            </tr>
+                        </thead>
+
+                        <tbody id="tablaHilosStockBajo"></tbody>
+
+                    </table>
+
+                </div>
+
+            </section>
+
         </main>
 
     </div>
@@ -233,7 +285,7 @@
     <script src="js/supabase-admin.js"></script>
     <script src="js/secure-admin-session.js"></script>
     <script src="js/api-guard.js"></script>
-    <script src="js/main.js?v=supabase1"></script>
+    <script src="js/main.js?v=proveedores1"></script>
 
 </body>
 

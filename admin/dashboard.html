@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="robots" content="noindex, nofollow">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>4DMK | Dashboard</title>
+
+    <link rel="stylesheet" href="css/estilos.css">
+    <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.9/dist/chart.umd.min.js"></script>
+</head>
+
+<body>
+
+    <div class="contenedor">
+
+        <aside class="sidebar">
+
+            <div class="logo">
+                <h2>4DMK</h2>
+                <p>Sistema de Ventas</p>
+            </div>
+
+            <nav class="menu">
+
+                <a href="index.html">
+                    <i class="ri-dashboard-line"></i>
+                    Panel Principal
+                </a>
+
+                <a href="dashboard.html" class="activo">
+                    <i class="ri-pie-chart-line"></i>
+                    Dashboard
+                </a>
+
+                <a href="../pedidos.html">
+                    <i class="ri-file-list-3-line"></i>
+                    Cotizaciones
+                </a>
+
+                <a href="ventas.html">
+                    <i class="ri-shopping-cart-line"></i>
+                    Ventas
+                </a>
+
+                <a href="productos.html">
+                    <i class="ri-archive-line"></i>
+                    Productos
+                </a>
+
+                <a href="clientes.html">
+                    <i class="ri-user-line"></i>
+                    Clientes
+                </a>
+
+                <a href="proveedores.html">
+                    <i class="ri-store-2-line"></i>
+                    Proveedores
+                </a>
+
+                <a href="inventario-hilos.html">
+                    <i class="ri-palette-line"></i>
+                    Inventario de Hilos
+                </a>
+
+                <a href="pelones.html">
+                    <i class="ri-stack-line"></i>
+                    Pelones
+                </a>
+
+                <a href="calcupelones.html">
+                    <i class="ri-calculator-line"></i>
+                    Calcupelones
+                </a>
+
+                <a href="reportes.html">
+                    <i class="ri-bar-chart-line"></i>
+                    Reportes
+                </a>
+
+                <a href="configuracion.html">
+                    <i class="ri-settings-3-line"></i>
+                    Configuracion
+                </a>
+
+            </nav>
+
+        </aside>
+
+        <main class="contenido">
+
+            <header class="barra-superior">
+
+                <div>
+                    <h1>Dashboard Operativo</h1>
+                    <p>Graficas de stock, proveedores, pelones y gastos del taller</p>
+                </div>
+
+                <div class="usuario">
+                    <i class="ri-user-smile-line"></i>
+                    <span>Administrador</span>
+                    <button class="boton-salir" onclick="cerrarSesion()">Salir</button>
+                </div>
+
+            </header>
+
+            <section class="tarjetas">
+
+                <div class="tarjeta alerta">
+                    <div>
+                        <h3>Hilos stock bajo</h3>
+                        <p id="dashHilosStockBajo">0</p>
+                    </div>
+                    <i class="ri-error-warning-line"></i>
+                </div>
+
+                <div class="tarjeta">
+                    <div>
+                        <h3>Proveedores activos</h3>
+                        <p id="dashProveedoresActivos">0</p>
+                    </div>
+                    <i class="ri-store-2-line"></i>
+                </div>
+
+                <div class="tarjeta">
+                    <div>
+                        <h3>Gasto del mes</h3>
+                        <p id="dashGastoMes">S/ 0.00</p>
+                    </div>
+                    <i class="ri-money-dollar-circle-line"></i>
+                </div>
+
+                <div class="tarjeta">
+                    <div>
+                        <h3>Pelones promedio</h3>
+                        <p id="dashPelonesPromedio">0%</p>
+                    </div>
+                    <i class="ri-stack-line"></i>
+                </div>
+
+            </section>
+
+            <section class="panel">
+
+                <div class="titulo-seccion">
+                    <h2>Filtros del dashboard</h2>
+                    <p>Cambia como se agrupa el gasto registrado en compras de hilos</p>
+                </div>
+
+                <div class="filtros-reportes">
+
+                    <div class="grupo-formulario">
+                        <label>Agrupar gasto por</label>
+                        <select id="periodoGastoDashboard">
+                            <option value="dia">Dia</option>
+                            <option value="semana">Semana</option>
+                            <option value="mes">Mes</option>
+                        </select>
+                    </div>
+
+                    <div class="grupo-formulario">
+                        <label>Desde</label>
+                        <input type="date" id="fechaInicioDashboard">
+                    </div>
+
+                    <div class="grupo-formulario">
+                        <label>Hasta</label>
+                        <input type="date" id="fechaFinDashboard">
+                    </div>
+
+                </div>
+
+            </section>
+
+            <section class="dashboard-grid">
+
+                <article class="panel dashboard-card">
+                    <div class="titulo-seccion">
+                        <h2>Hilos por codigo</h2>
+                        <p>Solo prefijos 50, 51, 52, 53, 54, 55, 56 y 60</p>
+                    </div>
+                    <div class="chart-wrapper">
+                        <canvas id="chartPrefijosHilos"></canvas>
+                    </div>
+                </article>
+
+                <article class="panel dashboard-card">
+                    <div class="titulo-seccion">
+                        <h2>Hilos por marca</h2>
+                        <p>Distribucion entre Lumina, Polifill y Polineon</p>
+                    </div>
+                    <div class="chart-wrapper">
+                        <canvas id="chartMarcasHilos"></canvas>
+                    </div>
+                </article>
+
+                <article class="panel dashboard-card">
+                    <div class="titulo-seccion">
+                        <h2>Gasto en hilos</h2>
+                        <p>Total comprado segun periodo seleccionado</p>
+                    </div>
+                    <div class="chart-wrapper">
+                        <canvas id="chartGastoHilos"></canvas>
+                    </div>
+                </article>
+
+                <article class="panel dashboard-card">
+                    <div class="titulo-seccion">
+                        <h2>Distribucion de stock</h2>
+                        <p>Histograma de unidades disponibles por rangos</p>
+                    </div>
+                    <div class="chart-wrapper">
+                        <canvas id="chartStockHilos"></canvas>
+                    </div>
+                </article>
+
+                <article class="panel dashboard-card dashboard-card-ancha">
+                    <div class="titulo-seccion">
+                        <h2>Cantidad de Pelones</h2>
+                        <p>Porcentaje disponible de cada tipo de pelon</p>
+                    </div>
+                    <div class="chart-wrapper chart-wrapper-horizontal">
+                        <canvas id="chartPelones"></canvas>
+                    </div>
+                </article>
+
+            </section>
+
+            <section class="panel">
+
+                <div class="titulo-seccion">
+                    <h2>Hilos con menor stock</h2>
+                    <p>Vista rapida de los colores que necesitan mas atencion</p>
+                </div>
+
+                <div class="tabla-contenedor">
+
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Codigo</th>
+                                <th>Color</th>
+                                <th>Marca</th>
+                                <th>Stock</th>
+                                <th>Proveedor</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tablaDashboardHilosBajos">
+                            <tr>
+                                <td colspan="5">Cargando hilos...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                </div>
+
+            </section>
+
+        </main>
+
+    </div>
+
+    <script src="../js/supabase-config.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/supabase-admin.js"></script>
+    <script src="js/secure-admin-session.js"></script>
+    <script src="js/api-guard.js"></script>
+    <script src="js/dashboard.js?v=proveedores1"></script>
+
+</body>
+
+</html>

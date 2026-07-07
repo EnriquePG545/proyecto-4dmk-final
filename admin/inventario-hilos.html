@@ -30,6 +30,11 @@
                     Panel Principal
                 </a>
 
+                <a href="dashboard.html">
+                    <i class="ri-pie-chart-line"></i>
+                    Dashboard
+                </a>
+
                 <a href="../pedidos.html">
                     <i class="ri-file-list-3-line"></i>
                     Cotizaciones
@@ -48,6 +53,11 @@
                 <a href="clientes.html">
                     <i class="ri-user-line"></i>
                     Clientes
+                </a>
+
+                <a href="proveedores.html">
+                    <i class="ri-store-2-line"></i>
+                    Proveedores
                 </a>
 
                 <a href="inventario-hilos.html" class="activo">
@@ -129,6 +139,28 @@
                         <input type="number" id="stockHilo" placeholder="0" min="0" step="1">
                     </div>
 
+                    <div class="grupo-formulario">
+                        <label>Proveedor</label>
+                        <select id="proveedorHilo">
+                            <option value="">Sin proveedor asignado</option>
+                        </select>
+                    </div>
+
+                    <div class="grupo-formulario">
+                        <label>Precio de compra</label>
+                        <input type="number" id="precioCompraHilo" placeholder="0.00" min="0" step="0.01">
+                    </div>
+
+                    <div class="grupo-formulario">
+                        <label>Fecha de compra</label>
+                        <input type="date" id="fechaCompraHilo">
+                    </div>
+
+                    <div class="grupo-formulario ancho-completo">
+                        <label>Detalle de compra</label>
+                        <textarea id="detalleCompraHilo" rows="3" placeholder="Proveedor, lote, factura o nota de compra"></textarea>
+                    </div>
+
                     <div class="ancho-completo">
 
                         <button type="submit" class="boton-guardar" id="btnGuardarHilo">
@@ -150,13 +182,69 @@
             <section class="panel">
 
                 <div class="titulo-seccion">
+                    <h2>Registrar Compra de Hilo</h2>
+                    <p>Suma stock, guarda proveedor y deja historial para el dashboard</p>
+                </div>
+
+                <form class="formulario-ventas" id="formCompraHilo">
+
+                    <div class="grupo-formulario">
+                        <label>Hilo</label>
+                        <select id="hiloCompra">
+                            <option value="">Selecciona un hilo</option>
+                        </select>
+                    </div>
+
+                    <div class="grupo-formulario">
+                        <label>Proveedor</label>
+                        <select id="proveedorCompra">
+                            <option value="">Selecciona un proveedor</option>
+                        </select>
+                    </div>
+
+                    <div class="grupo-formulario">
+                        <label>Cantidad comprada</label>
+                        <input type="number" id="cantidadCompraHilo" placeholder="0" min="1" step="1">
+                    </div>
+
+                    <div class="grupo-formulario">
+                        <label>Precio unitario</label>
+                        <input type="number" id="precioUnitarioCompraHilo" placeholder="0.00" min="0" step="0.01">
+                    </div>
+
+                    <div class="grupo-formulario">
+                        <label>Fecha de compra</label>
+                        <input type="date" id="fechaRegistroCompraHilo">
+                    </div>
+
+                    <div class="grupo-formulario ancho-completo">
+                        <label>Detalle de compra</label>
+                        <textarea id="detalleRegistroCompraHilo" rows="3" placeholder="Ejemplo: compra de reposicion, boleta, lote o comentario"></textarea>
+                    </div>
+
+                    <div class="ancho-completo">
+
+                        <button type="submit" class="boton-guardar">
+                            <i class="ri-add-circle-line"></i>
+                            Registrar Compra
+                        </button>
+
+                    </div>
+
+                </form>
+
+            </section>
+
+            <section class="panel">
+
+                <div class="titulo-seccion">
                     <h2>Lista de Hilos</h2>
-                    <p>Busca por codigo, color, marca o stock</p>
+                    <p>Busca por codigo, color, marca, proveedor, precio o stock</p>
                 </div>
 
                 <div class="buscador-contenedor">
                     <i class="ri-search-line"></i>
-                    <input type="text" id="buscadorHilos" placeholder="Buscar codigo, color, marca o stock...">
+                    <input type="text" id="buscadorHilos" placeholder="Buscar codigo, color, marca, proveedor o stock...">
                 </div>
 
                 <div class="tabla-contenedor">
@@ -169,6 +257,9 @@
                                 <th>Nombre de color</th>
                                 <th>Marca</th>
                                 <th>Stock</th>
+                                <th>Proveedor</th>
+                                <th>Precio compra</th>
+                                <th>Detalle</th>
                                 <th>Actualizado</th>
                                 <th>Acciones</th>
                             </tr>
@@ -176,7 +267,42 @@
 
                         <tbody id="tablaHilos">
                             <tr>
-                                <td colspan="6">Cargando hilos...</td>
+                                <td colspan="9">Cargando hilos...</td>
+                            </tr>
+                        </tbody>
+
+                    </table>
+
+                </div>
+
+            </section>
+
+            <section class="panel">
+
+                <div class="titulo-seccion">
+                    <h2>Historial de Compras de Hilos</h2>
+                    <p>Ultimas compras registradas para controlar gasto, proveedor y reposicion</p>
+                </div>
+
+                <div class="tabla-contenedor">
+
+                    <table>
+
+                        <thead>
+                            <tr>
+                                <th>Fecha</th>
+                                <th>Hilo</th>
+                                <th>Proveedor</th>
+                                <th>Cantidad</th>
+                                <th>Precio</th>
+                                <th>Total</th>
+                                <th>Detalle</th>
+                            </tr>
+                        </thead>
+
+                        <tbody id="tablaComprasHilos">
+                            <tr>
+                                <td colspan="7">Cargando compras...</td>
                             </tr>
                         </tbody>
 
@@ -193,7 +319,7 @@
     <script src="../js/supabase-config.js"></script>
     <script src="js/auth.js"></script>
     <script src="js/supabase-admin.js"></script>
-    <script src="js/inventario-hilos.js?v=stock1"></script>
+    <script src="js/inventario-hilos.js?v=proveedores1"></script>
 
 </body>
 

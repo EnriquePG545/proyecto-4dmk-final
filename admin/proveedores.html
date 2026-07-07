@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="robots" content="noindex, nofollow">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>4DMK | Productos</title>
+    <title>4DMK | Proveedores</title>
 
     <link rel="stylesheet" href="css/estilos.css">
     <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
@@ -45,7 +45,7 @@
                     Ventas
                 </a>
 
-                <a href="productos.html" class="activo">
+                <a href="productos.html">
                     <i class="ri-archive-line"></i>
                     Productos
                 </a>
@@ -55,7 +55,7 @@
                     Clientes
                 </a>
 
-                <a href="proveedores.html">
+                <a href="proveedores.html" class="activo">
                     <i class="ri-store-2-line"></i>
                     Proveedores
                 </a>
@@ -82,7 +82,7 @@
 
                 <a href="configuracion.html">
                     <i class="ri-settings-3-line"></i>
-                    Configuración
+                    Configuracion
                 </a>
 
             </nav>
@@ -94,8 +94,8 @@
             <header class="barra-superior">
 
                 <div>
-                    <h1>Gestión de Productos</h1>
-                    <p>Administra productos, diseños y órdenes de producción</p>
+                    <h1>Proveedores</h1>
+                    <p>Registra tiendas proveedoras y relaciona compras de hilos y pelones</p>
                 </div>
 
                 <div class="usuario">
@@ -106,50 +106,94 @@
 
             </header>
 
+            <section class="tarjetas">
+
+                <div class="tarjeta">
+                    <div>
+                        <h3>Proveedores activos</h3>
+                        <p id="proveedoresActivos">0</p>
+                    </div>
+                    <i class="ri-store-2-line"></i>
+                </div>
+
+                <div class="tarjeta">
+                    <div>
+                        <h3>Hilos relacionados</h3>
+                        <p id="hilosRelacionados">0</p>
+                    </div>
+                    <i class="ri-palette-line"></i>
+                </div>
+
+                <div class="tarjeta">
+                    <div>
+                        <h3>Pelones relacionados</h3>
+                        <p id="pelonesRelacionados">0</p>
+                    </div>
+                    <i class="ri-stack-line"></i>
+                </div>
+
+                <div class="tarjeta alerta">
+                    <div>
+                        <h3>Inactivos</h3>
+                        <p id="proveedoresInactivos">0</p>
+                    </div>
+                    <i class="ri-pause-circle-line"></i>
+                </div>
+
+            </section>
+
             <section class="panel">
 
                 <div class="titulo-seccion">
-                    <h2 id="tituloFormulario">Nuevo Producto</h2>
-                    <p>Registra o actualiza productos para el inventario</p>
+                    <h2 id="tituloFormularioProveedor">Nuevo Proveedor</h2>
+                    <p>Guarda el codigo de tienda para usarlo en inventario y compras</p>
                 </div>
 
-                <form class="formulario-ventas" id="formProducto">
+                <form class="formulario-ventas" id="formProveedor">
 
                     <div class="grupo-formulario">
-                        <label>Orden de Producción</label>
-                        <input type="text" id="ordenProduccion" placeholder="Ejemplo: 168013">
+                        <label>Codigo de tienda</label>
+                        <input type="text" id="codigoTienda" placeholder="Ejemplo: PROV-001">
                     </div>
 
                     <div class="grupo-formulario">
-                        <label>Código de Diseño</label>
-                        <input type="text" id="codigoDiseno" placeholder="Ejemplo: CC002-371">
+                        <label>Nombre de tienda</label>
+                        <input type="text" id="nombreTienda" placeholder="Ejemplo: Distribuidora Textil Lima">
+                    </div>
+
+                    <div class="grupo-formulario ancho-completo">
+                        <label>Direccion del proveedor</label>
+                        <input type="text" id="direccionProveedor" placeholder="Ejemplo: Av. Industrial 123, Lima">
                     </div>
 
                     <div class="grupo-formulario">
-                        <label>Stock</label>
-                        <input type="number" id="stockProducto" placeholder="0">
+                        <label>Telefono</label>
+                        <input type="text" id="telefonoProveedor" placeholder="Ejemplo: 987654321">
                     </div>
 
                     <div class="grupo-formulario">
-                        <label>Nombre del Producto</label>
-                        <input type="text" id="nombreProducto" placeholder="Ejemplo: Polo bordado">
+                        <label>Estado</label>
+                        <select id="estadoProveedor">
+                            <option value="true">Activo</option>
+                            <option value="false">Inactivo</option>
+                        </select>
                     </div>
 
-                    <div class="grupo-formulario">
-                        <label>Precio</label>
-                        <input type="number" id="precioProducto" placeholder="0.00" step="0.01">
+                    <div class="grupo-formulario ancho-completo">
+                        <label>Observacion</label>
+                        <textarea id="observacionProveedor" rows="3" placeholder="Detalle opcional de contacto, zona o condiciones de compra"></textarea>
                     </div>
 
                     <div class="ancho-completo">
 
-                        <button type="submit" class="boton-guardar" id="btnGuardar">
+                        <button type="submit" class="boton-guardar" id="btnGuardarProveedor">
                             <i class="ri-save-line"></i>
-                            Registrar Producto
+                            Registrar Proveedor
                         </button>
 
-                        <button type="button" class="boton-cancelar" id="btnCancelar">
+                        <button type="button" class="boton-cancelar" id="btnCancelarProveedor">
                             <i class="ri-close-circle-line"></i>
-                            Cancelar edición
+                            Cancelar edicion
                         </button>
 
                     </div>
@@ -161,13 +205,13 @@
             <section class="panel">
 
                 <div class="titulo-seccion">
-                    <h2>Inventario</h2>
-                    <p>Busca productos en tiempo real por orden, código o nombre</p>
+                    <h2>Lista de Proveedores</h2>
+                    <p>Busca por codigo, tienda, direccion, telefono o estado</p>
                 </div>
 
                 <div class="buscador-contenedor">
                     <i class="ri-search-line"></i>
-                    <input type="text" id="buscadorProductos" placeholder="Buscar por orden de producción, código de diseño o producto...">
+                    <input type="text" id="buscadorProveedores" placeholder="Buscar proveedor...">
                 </div>
 
                 <div class="tabla-contenedor">
@@ -176,16 +220,21 @@
 
                         <thead>
                             <tr>
-                                <th>Orden Producción</th>
-                                <th>Código Diseño</th>
-                                <th>Stock</th>
-                                <th>Producto</th>
-                                <th>Precio</th>
+                                <th>Codigo</th>
+                                <th>Tienda</th>
+                                <th>Direccion</th>
+                                <th>Telefono</th>
+                                <th>Uso</th>
+                                <th>Estado</th>
                                 <th>Acciones</th>
                             </tr>
                         </thead>
 
-                        <tbody id="tablaProductos"></tbody>
+                        <tbody id="tablaProveedores">
+                            <tr>
+                                <td colspan="7">Cargando proveedores...</td>
+                            </tr>
+                        </tbody>
 
                     </table>
 
@@ -198,11 +247,11 @@
     </div>
 
     <script src="../js/supabase-config.js"></script>
-    <script src="js/auth.js?v=normal2"></script>
+    <script src="js/auth.js"></script>
     <script src="js/supabase-admin.js"></script>
     <script src="js/secure-admin-session.js"></script>
     <script src="js/api-guard.js"></script>
-    <script src="js/productos.js?v=supabase1"></script>
+    <script src="js/proveedores.js?v=proveedores1"></script>
 
 </body>
 

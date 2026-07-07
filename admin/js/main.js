@@ -2,11 +2,14 @@ const ventasDia = document.getElementById("ventasDia");
 const cantidadProductos = document.getElementById("cantidadProductos");
 const cantidadClientes = document.getElementById("cantidadClientes");
 const cantidadStockBajo = document.getElementById("cantidadStockBajo");
+const cantidadStockBajoHilos = document.getElementById("cantidadStockBajoHilos");
 
 const tablaUltimasVentas = document.getElementById("tablaUltimasVentas");
 const tablaStockBajo = document.getElementById("tablaStockBajo");
+const tablaHilosStockBajo = document.getElementById("tablaHilosStockBajo");
 
 let umbralStockProductos = 5;
+let umbralStockHilos = 5;
 let canalDashboard = null;
 
 cargarDashboardDesdeSQL();
@@ -20,7 +23,7 @@ async function cargarDashboardDesdeSQL() {
 
     await cargarConfiguracionDashboard();
 
-    const [productosRes, clientesRes, ventasRes] = await Promise.all([
+    const [productosRes, clientesRes, ventasRes, hilosRes] = await Promise.all([
         supabaseClient.from("sistema_productos").select("*").order("stock", { ascending: true }),
         supabaseClient.from("sistema_clientes").select("id_cliente"),
         supabaseClient
@@ -35,10 +38,19 @@ async function cargarDashboardDesdeSQL() {
                 )
             `)
             .eq("anulada", false)
-            .order("fecha_registro", { ascending: false })
+            .order("fecha_registro", { ascending: false }),
+        supabaseClient
+            .from("inventario_hilos")
+            .select(`
+                *,
+                proveedores (
+                    nombre_tienda
+                )
+            `)
+            .order("stock", { ascending: true })
     ]);
 
-    const error = productosRes.error || clientesRes.error || ventasRes.error;
+    const error = productosRes.error || clientesRes.error || ventasRes.error || hilosRes.error;
 
     if (error) {
         console.error(error);
@@ -49,7 +61,10 @@ async function cargarDashboardDesdeSQL() {
     const productos = productosRes.data || [];
     const clientes = clientesRes.data || [];
     const ventas = ventasRes.data || [];
+    const hilos = hilosRes.data || [];
     const hoy = obtenerFechaActual();
+    const productosStockBajo = productos.filter(producto => Number(producto.stock) <= umbralStockProductos);
+    const hilosStockBajo = hilos.filter(hilo => Number(hilo.stock) <= umbralStockHilos);
 
     const resumen = {
         ventasDia: ventas
@@ -57,12 +72,14 @@ async function cargarDashboardDesdeSQL() {
             .reduce((total, venta) => total + Number(venta.total_venta || 0), 0),
         cantidadProductos: productos.length,
         cantidadClientes: clientes.length,
-        cantidadStockBajo: productos.filter(producto => Number(producto.stock) <= umbralStockProductos).length
+        cantidadStockBajo: productosStockBajo.length,
+        cantidadStockBajoHilos: hilosStockBajo.length
     };
 
     mostrarResumen(resumen);
     mostrarUltimasVentas(ventas.slice(0, 8).map(mapearVentaDashboard));
-    mostrarProductosStockBajo(productos.filter(producto => Number(producto.stock) <= umbralStockProductos));
+    mostrarProductosStockBajo(productosStockBajo);
+    mostrarHilosStockBajo(hilosStockBajo);
     activarRealtimeDashboard();
 }
 
@@ -70,12 +87,21 @@ async function cargarConfiguracionDashboard() {
     const { data, error } = await supabaseClient
         .from("sistema_configuracion")
         .select("clave, valor")
-        .eq("clave", "stock_bajo_productos")
-        .maybeSingle();
+        .in("clave", ["stock_bajo_productos", "stock_bajo_hilos"]);
 
-    if (!error && data) {
-        umbralStockProductos = Number(data.valor) || 5;
+    if (error || !data) {
+        return;
     }
+
+    data.forEach(function (item) {
+        if (item.clave === "stock_bajo_productos") {
+            umbralStockProductos = Number(item.valor) || 5;
+        }
+
+        if (item.clave === "stock_bajo_hilos") {
+            umbralStockHilos = Number(item.valor) || 5;
+        }
+    });
 }
 
 function mostrarResumen(resumen) {
@@ -83,6 +109,7 @@ function mostrarResumen(resumen) {
     cantidadProductos.textContent = `${resumen.cantidadProductos} registrados`;
     cantidadClientes.textContent = `${resumen.cantidadClientes} registrados`;
     cantidadStockBajo.textContent = `${resumen.cantidadStockBajo} productos`;
+    cantidadStockBajoHilos.textContent = `${resumen.cantidadStockBajoHilos} hilos`;
 }
 
 function mostrarUltimasVentas(listaVentas) {
@@ -142,6 +169,34 @@ function mostrarProductosStockBajo(listaProductos) {
     });
 }
 
+function mostrarHilosStockBajo(listaHilos) {
+    tablaHilosStockBajo.innerHTML = "";
+
+    if (listaHilos.length === 0) {
+        tablaHilosStockBajo.innerHTML = `
+            <tr>
+                <td colspan="5">No hay hilos con stock bajo.</td>
+            </tr>
+        `;
+        return;
+    }
+
+    listaHilos.forEach(function (hilo) {
+        const fila = document.createElement("tr");
+        const proveedor = hilo.proveedores?.nombre_tienda || "Sin proveedor";
+
+        fila.innerHTML = `
+            <td><strong>${textoSeguro(hilo.codigo_hilo)}</strong></td>
+            <td>${textoSeguro(hilo.nombre_color)}</td>
+            <td><span class="marca-hilo">${textoSeguro(hilo.marca)}</span></td>
+            <td><span class="stock-hilo stock-hilo-bajo">${Number(hilo.stock || 0)}</span></td>
+            <td>${textoSeguro(proveedor)}</td>
+        `;
+
+        tablaHilosStockBajo.appendChild(fila);
+    });
+}
+
 function activarRealtimeDashboard() {
     if (canalDashboard) {
         return;
@@ -163,6 +218,21 @@ function activarRealtimeDashboard() {
             event: "*",
             schema: "public",
             table: "sistema_clientes"
+        }, cargarDashboardDesdeSQL)
+        .on("postgres_changes", {
+            event: "*",
+            schema: "public",
+            table: "inventario_hilos"
+        }, cargarDashboardDesdeSQL)
+        .on("postgres_changes", {
+            event: "*",
+            schema: "public",
+            table: "proveedores"
+        }, cargarDashboardDesdeSQL)
+        .on("postgres_changes", {
+            event: "*",
+            schema: "public",
+            table: "sistema_configuracion"
         }, cargarDashboardDesdeSQL)
         .subscribe();
 }
