@@ -16,12 +16,12 @@ Esta carpeta guarda el diseno HTML del correo de recuperacion de contrasena.
 
 ## URL que debe estar permitida
 
-En `Authentication > URL Configuration`, agrega esta URL en los redirects permitidos:
+En `Authentication > URL Configuration`, usa esta URL como `Site URL`:
+
+`https://4dmkoficialx.netlify.app`
+
+Y agrega esta URL en los redirects permitidos:
 
 `https://4dmkoficialx.netlify.app/actualizar-contrasena.html`
-
-Tambien conviene permitir:
-
-`https://4dmkoficialx.netlify.app/actualizar-contrasena.html?origen=admin`
 
 Sin esa configuracion, Supabase puede enviar el correo, pero el enlace podria no volver correctamente a 4DMK.

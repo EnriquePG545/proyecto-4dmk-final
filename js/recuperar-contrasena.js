@@ -24,7 +24,9 @@ recuperarForm.addEventListener("submit", async function (e) {
     bloquearFormularioRecuperacion(true);
     mostrarMensajeRecuperacion("Preparando enlace seguro...", "info");
 
-    const redirectTo = `${window.location.origin}/actualizar-contrasena.html?origen=${origenRecuperacion}`;
+    sessionStorage.setItem("recuperacionOrigen4DMK", origenRecuperacion);
+
+    const redirectTo = `${window.location.origin}/actualizar-contrasena.html`;
 
     try {
         const { error } = await supabaseClient.auth.resetPasswordForEmail(email, {

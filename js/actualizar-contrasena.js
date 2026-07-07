@@ -8,8 +8,11 @@ const botonesToggleRecovery = document.querySelectorAll(".toggle-recovery-passwo
 
 const parametrosActualizacion = new URLSearchParams(window.location.search);
 const hashActualizacion = new URLSearchParams(window.location.hash.replace("#", ""));
-const origenActualizacion = parametrosActualizacion.get("origen") === "admin" ? "admin" : "cliente";
+const origenGuardadoActualizacion = sessionStorage.getItem("recuperacionOrigen4DMK");
+const origenActualizacion = origenGuardadoActualizacion === "admin" || parametrosActualizacion.get("origen") === "admin" ? "admin" : "cliente";
 const vieneDeEnlaceRecuperacion = hashActualizacion.get("type") === "recovery" || parametrosActualizacion.has("code");
+const errorRecuperacion = hashActualizacion.get("error") || parametrosActualizacion.get("error");
+const descripcionErrorRecuperacion = hashActualizacion.get("error_description") || parametrosActualizacion.get("error_description");
 
 let recuperacionLista = false;
 
@@ -76,6 +79,7 @@ actualizarPasswordForm.addEventListener("submit", async function (e) {
         }
 
         await supabaseClient.auth.signOut();
+        sessionStorage.removeItem("recuperacionOrigen4DMK");
         actualizarPasswordForm.reset();
         recuperacionLista = false;
         mostrarMensajeActualizacion("Contrasena actualizada correctamente. Ya puedes iniciar sesion.", "success");
@@ -96,6 +100,15 @@ async function inicializarRecuperacion() {
     mostrarMensajeActualizacion("Verificando enlace seguro...", "info");
 
     try {
+        if (errorRecuperacion) {
+            const mensajeExpirado = descripcionErrorRecuperacion
+                ? decodeURIComponent(descripcionErrorRecuperacion.replace(/\+/g, " "))
+                : "El enlace de recuperacion ya expiro o no es valido.";
+
+            mostrarMensajeActualizacion(`${mensajeExpirado} Solicita un enlace nuevo desde el login.`, "error");
+            return;
+        }
+
         if (parametrosActualizacion.has("code") && supabaseClient.auth.exchangeCodeForSession) {
             await supabaseClient.auth.exchangeCodeForSession(parametrosActualizacion.get("code"));
         }
