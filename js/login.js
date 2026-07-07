@@ -83,7 +83,7 @@ loginForm.addEventListener("submit", async function (e) {
             localStorage.setItem("nombreUsuarioActivo", perfil.nombre_completo);
 
             setTimeout(() => {
-                window.location.href = "panel.html";
+                window.location.href = "admin/index.html";
             }, 700);
 
             return;

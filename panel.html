@@ -1,334 +1,35 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="UTF-8">
-
     <meta name="robots" content="noindex, nofollow">
-
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-    <title>4DMK | Panel de Administración</title>
-
-    <meta name="theme-color" content="#070b16">
-
-    <meta name="theme-color" content="#070b16">
-    <meta name="mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="4DMK">
-
-    <link rel="manifest" href="/manifest.json">
-    <link rel="apple-touch-icon" href="/img/logo.png">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="4DMK">
-
-    <!-- CSS principal de la página informativa -->
-    <link rel="stylesheet" href="css/estilos.css">
-
-    <!-- Iconos -->
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet">
-
-    <!-- Fuente -->
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-
-    <!-- Supabase -->
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-
+    <title>4DMK | Redirigiendo</title>
+    <meta http-equiv="refresh" content="0; url=admin/index.html">
     <style>
-        body.panel-admin-page {
-            min-height: 100vh;
-            background: radial-gradient(circle at top, #16213e 0%, #070b16 55%, #020617 100%);
-            color: #ffffff;
-            font-family: 'Poppins', sans-serif;
+        body{
+            min-height:100vh;
+            margin:0;
+            display:grid;
+            place-items:center;
+            font-family:Arial,sans-serif;
+            background:#111827;
+            color:#ffffff;
         }
 
-        .panel-admin-container {
-            min-height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 40px 20px;
-        }
-
-        .panel-admin-card {
-            width: 100%;
-            max-width: 1050px;
-            background: rgba(15, 23, 42, 0.88);
-            border: 1px solid rgba(255, 255, 255, 0.12);
-            border-radius: 28px;
-            padding: 42px;
-            box-shadow: 0 30px 80px rgba(0, 0, 0, 0.45);
-            backdrop-filter: blur(18px);
-        }
-
-        .panel-admin-header {
-            text-align: center;
-            margin-bottom: 36px;
-        }
-
-        .panel-admin-logo {
-            width: 92px;
-            height: auto;
-            margin-bottom: 16px;
-        }
-
-        .panel-admin-tag {
-            display: inline-block;
-            padding: 8px 18px;
-            border-radius: 999px;
-            background: rgba(250, 204, 21, 0.12);
-            color: #facc15;
-            font-size: 13px;
-            font-weight: 700;
-            letter-spacing: 1px;
-            text-transform: uppercase;
-            margin-bottom: 14px;
-        }
-
-        .panel-admin-header h1 {
-            font-size: clamp(30px, 5vw, 52px);
-            margin: 0 0 12px 0;
-            line-height: 1.08;
-        }
-
-        .panel-admin-header p {
-            max-width: 680px;
-            margin: 0 auto;
-            color: #cbd5e1;
-            line-height: 1.7;
-        }
-
-        .panel-admin-grid {
-            display: grid;
-            grid-template-columns: repeat(2, minmax(0, 1fr));
-            gap: 24px;
-        }
-
-        .panel-opcion {
-            position: relative;
-            overflow: hidden;
-            min-height: 270px;
-            padding: 32px;
-            border-radius: 24px;
-            background: linear-gradient(145deg, rgba(30, 41, 59, 0.95), rgba(15, 23, 42, 0.95));
-            border: 1px solid rgba(255, 255, 255, 0.12);
-            text-decoration: none;
-            color: white;
-            transition: transform 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
-        }
-
-        .panel-opcion:hover {
-            transform: translateY(-8px);
-            border-color: rgba(250, 204, 21, 0.45);
-            box-shadow: 0 24px 60px rgba(0, 0, 0, 0.38);
-        }
-
-        .panel-opcion::before {
-            content: "";
-            position: absolute;
-            width: 180px;
-            height: 180px;
-            right: -60px;
-            top: -60px;
-            background: rgba(250, 204, 21, 0.10);
-            border-radius: 50%;
-        }
-
-        .panel-icono {
-            width: 70px;
-            height: 70px;
-            border-radius: 22px;
-            background: rgba(250, 204, 21, 0.14);
-            color: #facc15;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 32px;
-            margin-bottom: 22px;
-        }
-
-        .panel-opcion h2 {
-            font-size: 26px;
-            margin: 0 0 12px 0;
-        }
-
-        .panel-opcion p {
-            color: #cbd5e1;
-            line-height: 1.65;
-            margin-bottom: 24px;
-        }
-
-        .panel-opcion span {
-            display: inline-flex;
-            align-items: center;
-            gap: 10px;
-            color: #facc15;
-            font-weight: 700;
-        }
-
-        .panel-admin-footer {
-            display: flex;
-            justify-content: center;
-            gap: 16px;
-            flex-wrap: wrap;
-            margin-top: 32px;
-        }
-
-        .panel-btn-secundario {
-            border: none;
-            cursor: pointer;
-            background: rgba(255, 255, 255, 0.08);
-            color: #e5e7eb;
-            padding: 13px 20px;
-            border-radius: 999px;
-            text-decoration: none;
-            font-weight: 600;
-            transition: background 0.2s ease, transform 0.2s ease;
-        }
-
-        .panel-btn-secundario:hover {
-            background: rgba(255, 255, 255, 0.14);
-            transform: translateY(-2px);
-        }
-
-        @media (max-width: 800px) {
-            .panel-admin-card {
-                padding: 28px 20px;
-            }
-
-            .panel-admin-grid {
-                grid-template-columns: 1fr;
-            }
-
-            .panel-opcion {
-                min-height: auto;
-            }
+        a{
+            color:#facc15;
+            font-weight:700;
         }
     </style>
+    <script>
+        window.location.replace("admin/index.html");
+    </script>
 </head>
 
-<body class="panel-admin-page">
-
-    <main class="panel-admin-container">
-
-        <section class="panel-admin-card">
-
-            <div class="panel-admin-header">
-                <img src="img/logo.png" alt="Logo 4DMK" class="panel-admin-logo">
-
-                <p class="panel-admin-tag">Panel administrativo</p>
-
-                <h1>¿Qué deseas gestionar?</h1>
-
-                <p>
-                    Selecciona el área que deseas administrar. Puedes revisar solicitudes recibidas desde la página web
-                    o ingresar al sistema completo de inventario, clientes, ventas y reportes.
-                </p>
-            </div>
-
-            <div class="panel-admin-grid">
-
-                <a href="pedidos.html" class="panel-opcion">
-                    <div class="panel-icono">
-                        <i class="fa-solid fa-file-invoice"></i>
-                    </div>
-
-                    <h2>Solicitudes de Cotización</h2>
-
-                    <p>
-                        Revisa los pedidos enviados desde el formulario web, cambia estados,
-                        consulta detalles y contacta al cliente por WhatsApp.
-                    </p>
-
-                    <span>
-                        Ver pedidos
-                        <i class="fa-solid fa-arrow-right"></i>
-                    </span>
-                </a>
-
-                <a href="admin/index.html" class="panel-opcion">
-                    <div class="panel-icono">
-                        <i class="fa-solid fa-chart-line"></i>
-                    </div>
-
-                    <h2>Inventario y Ventas</h2>
-
-                    <p>
-                        Administra productos, clientes, ventas, métodos de pago, stock,
-                        reportes y configuración general del sistema 4DMK.
-                    </p>
-
-                    <span>
-                        Entrar al sistema
-                        <i class="fa-solid fa-arrow-right"></i>
-                    </span>
-                </a>
-
-            </div>
-
-            <div class="panel-admin-footer">
-                <a href="index.html" class="panel-btn-secundario">
-                    <i class="fa-solid fa-house"></i>
-                    Volver al inicio
-                </a>
-
-                <button type="button" class="panel-btn-secundario" id="btnCerrarSesionPanel">
-                    <i class="fa-solid fa-right-from-bracket"></i>
-                    Cerrar sesión
-                </button>
-            </div>
-
-        </section>
-
-    </main>
-
-    <script src="js/supabase-config.js"></script>
-
-    <script>
-        async function verificarSesionPanel() {
-            const { data } = await supabaseClient.auth.getSession();
-
-            if (!data.session) {
-                window.location.href = "login.html";
-                return;
-            }
-
-            const { data: adminData, error: adminError } = await supabaseClient
-                .from("admins")
-                .select("user_id, rol")
-                .eq("user_id", data.session.user.id)
-                .maybeSingle();
-
-            if (adminError || !adminData) {
-                await supabaseClient.auth.signOut();
-                localStorage.removeItem("sesionActiva");
-                localStorage.removeItem("usuarioActivo");
-                localStorage.removeItem("nombreUsuarioActivo");
-                localStorage.removeItem("rolAdminActivo");
-                window.location.href = "login.html";
-                return;
-            }
-
-            localStorage.setItem("sesionActiva", "true");
-            localStorage.setItem("usuarioActivo", data.session.user.email || "admin");
-            localStorage.setItem("nombreUsuarioActivo", "Administrador 4DMK");
-            localStorage.setItem("rolAdminActivo", adminData.rol || "admin");
-        }
-
-        verificarSesionPanel();
-
-        document.getElementById("btnCerrarSesionPanel").addEventListener("click", async function () {
-            await supabaseClient.auth.signOut();
-
-            localStorage.removeItem("sesionActiva");
-            localStorage.removeItem("usuarioActivo");
-            localStorage.removeItem("nombreUsuarioActivo");
-            localStorage.removeItem("rolAdminActivo");
-
-            window.location.href = "login.html";
-        });
-    </script>
-    <script src="js/pwa.js"></script>
+<body>
+    <p>Redirigiendo al sistema de inventario... <a href="admin/index.html">Entrar ahora</a></p>
 </body>
+
 </html>

@@ -2598,6 +2598,495 @@ tbody tr:hover td{
     }
 }
 
+/* COTIZACIONES INTEGRADAS AL SISTEMA */
+
+.cotizaciones-topbar{
+    gap:18px;
+}
+
+.cotizaciones-acciones-superiores{
+    display:flex;
+    align-items:center;
+    gap:12px;
+    flex-wrap:wrap;
+    border-radius:18px;
+}
+
+.usuario-cotizaciones{
+    display:inline-flex;
+    align-items:center;
+    gap:8px;
+    color:#374151;
+    font-weight:700;
+}
+
+.boton-volver-admin{
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    gap:8px;
+    min-height:40px;
+    padding:10px 14px;
+    border-radius:999px;
+    background:#111827;
+    color:#ffffff;
+    text-decoration:none;
+    font-weight:800;
+    transition:0.25s ease;
+}
+
+.boton-volver-admin:hover{
+    background:#000000;
+    transform:translateY(-2px);
+}
+
+.mensaje-cotizaciones{
+    display:flex;
+    align-items:center;
+    min-height:48px;
+    padding:14px 18px;
+    border-radius:16px;
+    margin:-12px 0 24px 0;
+    border:1px solid #e5e7eb;
+    background:#ffffff;
+    color:#374151;
+    font-weight:800;
+    box-shadow:0 8px 22px rgba(0,0,0,0.05);
+}
+
+.mensaje-cotizaciones.info{
+    background:#eff6ff;
+    border-color:#bfdbfe;
+    color:#1d4ed8;
+}
+
+.mensaje-cotizaciones.success{
+    background:#ecfdf5;
+    border-color:#bbf7d0;
+    color:#166534;
+}
+
+.mensaje-cotizaciones.error{
+    background:#fef2f2;
+    border-color:#fecaca;
+    color:#991b1b;
+}
+
+.titulo-con-accion{
+    display:flex;
+    justify-content:space-between;
+    align-items:flex-start;
+    gap:18px;
+}
+
+.boton-recargar-cotizaciones{
+    white-space:nowrap;
+}
+
+.cotizaciones-chart{
+    height:300px;
+}
+
+.filtros-cotizaciones{
+    display:grid;
+    grid-template-columns:minmax(260px,2fr) minmax(190px,1fr) minmax(190px,1fr);
+    gap:18px;
+    align-items:end;
+    margin-bottom:22px;
+}
+
+.filtros-cotizaciones .buscador-contenedor{
+    margin-bottom:0;
+}
+
+.tabla-cotizaciones table{
+    min-width:1080px;
+}
+
+.estado-select{
+    width:100%;
+    min-width:135px;
+    padding:10px 12px;
+    border:1px solid #d1d5db;
+    border-radius:999px;
+    outline:none;
+    font-weight:900;
+    text-align:center;
+}
+
+.estado-pendiente{
+    background:#fef3c7 !important;
+    color:#92400e !important;
+    border-color:#fde68a !important;
+}
+
+.estado-revisado{
+    background:#dbeafe !important;
+    color:#1d4ed8 !important;
+    border-color:#bfdbfe !important;
+}
+
+.estado-cotizado{
+    background:#ccfbf1 !important;
+    color:#0f766e !important;
+    border-color:#99f6e4 !important;
+}
+
+.estado-en-proceso{
+    background:#ede9fe !important;
+    color:#6d28d9 !important;
+    border-color:#ddd6fe !important;
+}
+
+.estado-finalizado{
+    background:#dcfce7 !important;
+    color:#166534 !important;
+    border-color:#bbf7d0 !important;
+}
+
+.estado-cancelado{
+    background:#fee2e2 !important;
+    color:#991b1b !important;
+    border-color:#fecaca !important;
+}
+
+.accion-btn{
+    width:40px;
+    height:40px;
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    border:none;
+    border-radius:12px;
+    background:#f3f4f6;
+    color:#111827;
+    text-decoration:none;
+    cursor:pointer;
+    font-size:20px;
+    margin:3px;
+    transition:0.25s ease;
+}
+
+.accion-btn:hover{
+    transform:translateY(-2px);
+    background:#facc15;
+    color:#111827;
+}
+
+.whatsapp-admin{
+    background:#dcfce7;
+    color:#166534;
+}
+
+.whatsapp-admin:hover{
+    background:#22c55e;
+    color:#ffffff;
+}
+
+.accion-disabled,
+.accion-disabled:hover{
+    background:#e5e7eb;
+    color:#9ca3af;
+    cursor:not-allowed;
+    transform:none;
+}
+
+.texto-muted{
+    color:#6b7280;
+}
+
+.pedido-modal{
+    position:fixed;
+    inset:0;
+    z-index:9999;
+    display:none;
+    align-items:center;
+    justify-content:center;
+    padding:24px;
+    background:rgba(17,24,39,0.68);
+    backdrop-filter:blur(8px);
+}
+
+.pedido-modal.active{
+    display:flex;
+}
+
+.pedido-modal-card{
+    width:min(920px,100%);
+    max-height:92vh;
+    overflow-y:auto;
+    position:relative;
+    background:#ffffff;
+    border-radius:22px;
+    padding:30px;
+    box-shadow:0 30px 80px rgba(0,0,0,0.32);
+}
+
+.pedido-modal-card h2{
+    color:#111827;
+    margin-bottom:22px;
+}
+
+.cerrar-modal{
+    position:absolute;
+    top:18px;
+    right:18px;
+    width:40px;
+    height:40px;
+    border:none;
+    border-radius:12px;
+    background:#f3f4f6;
+    color:#374151;
+    cursor:pointer;
+    font-size:22px;
+    transition:0.25s ease;
+}
+
+.cerrar-modal:hover{
+    background:#fee2e2;
+    color:#991b1b;
+}
+
+.detalle-estado{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    gap:16px;
+    flex-wrap:wrap;
+    margin-bottom:20px;
+}
+
+.badge-estado{
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    min-height:38px;
+    padding:8px 16px;
+    border-radius:999px;
+    font-size:14px;
+    font-weight:900;
+}
+
+.detalle-whatsapp{
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    gap:10px;
+    min-height:42px;
+    padding:10px 16px;
+    border-radius:999px;
+    color:#ffffff;
+    background:#22c55e;
+    text-decoration:none;
+    font-size:14px;
+    font-weight:900;
+    transition:0.25s ease;
+}
+
+.detalle-whatsapp:hover{
+    transform:translateY(-2px);
+    background:#16a34a;
+}
+
+.detalle-whatsapp-disabled{
+    background:#e5e7eb;
+    color:#6b7280;
+}
+
+.detalle-grid{
+    display:grid;
+    grid-template-columns:repeat(2,minmax(0,1fr));
+    gap:14px;
+    margin-bottom:18px;
+}
+
+.detalle-grid div,
+.detalle-texto,
+.historial-estados{
+    padding:15px;
+    border-radius:16px;
+    background:#f9fafb;
+    border:1px solid #e5e7eb;
+}
+
+.detalle-grid span,
+.detalle-texto span{
+    display:block;
+    color:#6b7280;
+    font-size:12px;
+    font-weight:800;
+    margin-bottom:5px;
+    text-transform:uppercase;
+}
+
+.detalle-grid strong,
+.detalle-texto p{
+    color:#111827;
+    font-size:14px;
+    line-height:1.6;
+}
+
+.detalle-texto{
+    margin-bottom:14px;
+}
+
+.historial-estados{
+    margin-top:18px;
+}
+
+.historial-estados h3{
+    color:#111827;
+    margin-bottom:12px;
+}
+
+.historial-lista{
+    display:grid;
+    gap:10px;
+}
+
+.historial-item{
+    display:flex;
+    justify-content:space-between;
+    gap:12px;
+    padding:12px;
+    border-radius:12px;
+    background:#ffffff;
+    border:1px solid #e5e7eb;
+    color:#111827;
+    font-size:13px;
+}
+
+.historial-fecha,
+.historial-vacio{
+    color:#6b7280;
+}
+
+.contenedor-notificaciones-pedidos{
+    position:fixed;
+    top:22px;
+    right:22px;
+    z-index:10000;
+    display:flex;
+    flex-direction:column;
+    gap:14px;
+}
+
+.notificacion-pedido{
+    width:min(360px,calc(100vw - 40px));
+    background:#ffffff;
+    border:1px solid #e5e7eb;
+    border-left:5px solid #22c55e;
+    border-radius:18px;
+    padding:16px;
+    color:#111827;
+    display:flex;
+    align-items:flex-start;
+    gap:14px;
+    box-shadow:0 18px 45px rgba(0,0,0,0.18);
+    animation:entradaNotificacionPedido 0.3s ease;
+}
+
+.notificacion-pedido-error{
+    border-left-color:#ef4444;
+}
+
+.notificacion-pedido-advertencia{
+    border-left-color:#facc15;
+}
+
+.notificacion-pedido-icono{
+    font-size:24px;
+    color:#22c55e;
+}
+
+.notificacion-pedido-error .notificacion-pedido-icono{
+    color:#ef4444;
+}
+
+.notificacion-pedido-advertencia .notificacion-pedido-icono{
+    color:#d97706;
+}
+
+.notificacion-pedido-texto h4{
+    margin:0 0 5px 0;
+    font-size:15px;
+}
+
+.notificacion-pedido-texto p{
+    margin:0;
+    color:#4b5563;
+    font-size:13px;
+    line-height:1.5;
+}
+
+.notificacion-pedido.salir{
+    animation:salidaNotificacionPedido 0.3s ease forwards;
+}
+
+@keyframes entradaNotificacionPedido{
+    from{
+        opacity:0;
+        transform:translateX(28px);
+    }
+
+    to{
+        opacity:1;
+        transform:translateX(0);
+    }
+}
+
+@keyframes salidaNotificacionPedido{
+    from{
+        opacity:1;
+        transform:translateX(0);
+    }
+
+    to{
+        opacity:0;
+        transform:translateX(28px);
+    }
+}
+
+@media(max-width:1000px){
+    .filtros-cotizaciones{
+        grid-template-columns:1fr;
+    }
+
+    .cotizaciones-acciones-superiores{
+        width:100%;
+        justify-content:space-between;
+    }
+}
+
+@media(max-width:700px){
+    .titulo-con-accion,
+    .detalle-estado,
+    .historial-item{
+        flex-direction:column;
+        align-items:stretch;
+    }
+
+    .detalle-grid{
+        grid-template-columns:1fr;
+    }
+
+    .boton-recargar-cotizaciones,
+    .boton-volver-admin,
+    .detalle-whatsapp{
+        width:100%;
+    }
+
+    .contenedor-notificaciones-pedidos{
+        top:16px;
+        right:14px;
+        left:14px;
+    }
+
+    .notificacion-pedido{
+        width:100%;
+    }
+}
+
 /* AJUSTES OPERATIVOS */
 
 .config-form-grid{

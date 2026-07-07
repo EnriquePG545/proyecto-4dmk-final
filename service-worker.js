@@ -1,11 +1,10 @@
-const CACHE_NAME = "4dmk-pwa-v6";
+const CACHE_NAME = "4dmk-pwa-v7";
 
 const STATIC_ASSETS = [
     "/",
     "/index.html",
     "/login.html",
     "/registro.html",
-    "/panel.html",
     "/mis-pedidos.html",
     "/mi-cuenta.html",
     "/cotizar.html",

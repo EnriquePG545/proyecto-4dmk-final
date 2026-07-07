@@ -1,203 +1,235 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="UTF-8">
-
     <meta name="robots" content="noindex, nofollow">
-
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-    <title>4DMK | Panel Administrativo</title>
-
-    <meta name="theme-color" content="#070b16">
+    <title>4DMK | Cotizaciones</title>
 
     <link rel="icon" href="img/logo.png" type="image/png">
-
-    <!-- CSS -->
-    <link rel="stylesheet" href="css/estilos.css">
-
-    <!-- Iconos -->
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet">
-
-    <!-- Fuente -->
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-
-    <!-- Supabase -->
+    <link rel="stylesheet" href="admin/css/estilos.css">
+    <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-
-    <!-- Chart.js -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.9/dist/chart.umd.min.js"></script>
 </head>
-<body class="admin-page">
 
-    <div class="admin-layout">
+<body>
 
-        <!-- SIDEBAR -->
-        <aside class="admin-sidebar">
-            <div class="admin-brand">
-                <img src="img/logo.png" alt="Logo 4DMK">
-                <div>
-                    <h2>4DMK</h2>
-                    <p>Panel privado</p>
-                </div>
+    <div class="contenedor">
+
+        <aside class="sidebar">
+
+            <div class="logo">
+                <h2>4DMK</h2>
+                <p>Sistema de Ventas</p>
             </div>
 
-            <nav class="admin-menu">
-                <a href="#resumen" class="active">
-                    <i class="fa-solid fa-chart-simple"></i>
-                    Resumen
-                </a>
-
-                <a href="#pedidos">
-                    <i class="fa-solid fa-file-lines"></i>
-                    Pedidos
-                </a>
+            <nav class="menu">
 
                 <a href="admin/index.html">
-                    <i class="fa-solid fa-boxes-stacked"></i>
-                    Sistema interno
+                    <i class="ri-dashboard-line"></i>
+                    Panel Principal
                 </a>
 
-                <a href="#consultas">
-                    <i class="fa-solid fa-magnifying-glass"></i>
-                    Consultas
+                <a href="admin/dashboard.html">
+                    <i class="ri-pie-chart-line"></i>
+                    Dashboard
                 </a>
 
-                <a href="index.html">
-                    <i class="fa-solid fa-globe"></i>
-                    Ver página
+                <a href="pedidos.html" class="activo">
+                    <i class="ri-file-list-3-line"></i>
+                    Cotizaciones
                 </a>
+
+                <a href="admin/ventas.html">
+                    <i class="ri-shopping-cart-line"></i>
+                    Ventas
+                </a>
+
+                <a href="admin/productos.html">
+                    <i class="ri-archive-line"></i>
+                    Productos
+                </a>
+
+                <a href="admin/clientes.html">
+                    <i class="ri-user-line"></i>
+                    Clientes
+                </a>
+
+                <a href="admin/proveedores.html">
+                    <i class="ri-store-2-line"></i>
+                    Proveedores
+                </a>
+
+                <a href="admin/inventario-hilos.html">
+                    <i class="ri-palette-line"></i>
+                    Inventario de Hilos
+                </a>
+
+                <a href="admin/pelones.html">
+                    <i class="ri-stack-line"></i>
+                    Pelones
+                </a>
+
+                <a href="admin/calcupelones.html">
+                    <i class="ri-calculator-line"></i>
+                    Calcupelones
+                </a>
+
+                <a href="admin/reportes.html">
+                    <i class="ri-bar-chart-line"></i>
+                    Reportes
+                </a>
+
+                <a href="admin/configuracion.html">
+                    <i class="ri-settings-3-line"></i>
+                    Configuracion
+                </a>
+
             </nav>
 
-            <button id="logoutBtn" class="admin-logout">
-                <i class="fa-solid fa-right-from-bracket"></i>
-                Cerrar sesión
-            </button>
         </aside>
 
-        <!-- CONTENIDO -->
-        <main class="admin-main">
+        <main class="contenido">
 
-            <header class="admin-topbar">
+            <header class="barra-superior cotizaciones-topbar">
+
                 <div>
-                    <p class="admin-tag">Administración</p>
-                    <h1>Panel de cotizaciones</h1>
+                    <h1>Gestion de Cotizaciones</h1>
+                    <p>Revisa solicitudes web, cambia estados y contacta clientes desde un solo lugar</p>
                 </div>
 
-                <div class="admin-user">
-                    <i class="fa-solid fa-user-shield"></i>
-                    <span id="adminCorreo">Administrador</span>
+                <div class="usuario cotizaciones-acciones-superiores">
+                    <a href="admin/index.html" class="boton-volver-admin">
+                        <i class="ri-arrow-left-line"></i>
+                        Volver al Panel
+                    </a>
+
+                    <span class="usuario-cotizaciones">
+                        <i class="ri-user-smile-line"></i>
+                        <span id="adminCorreo">Administrador</span>
+                    </span>
+
+                    <button class="boton-salir" id="logoutBtn">Salir</button>
                 </div>
+
             </header>
 
-            <!-- MENSAJE -->
-            <div id="adminMensaje" class="admin-mensaje">
-                Cargando información...
+            <div id="adminMensaje" class="mensaje-cotizaciones">
+                Cargando informacion...
             </div>
 
-            <!-- RESUMEN -->
-            <section class="admin-section" id="resumen">
+            <section class="tarjetas">
 
-            <div class="admin-cards admin-cards-5">
-                <div class="admin-card">
-                    <i class="fa-solid fa-file-circle-plus"></i>
+                <div class="tarjeta">
                     <div>
-                        <p>Total pedidos</p>
-                        <h3 id="totalPedidos">0</h3>
+                        <h3>Total cotizaciones</h3>
+                        <p id="totalPedidos">0</p>
+                    </div>
+                    <i class="ri-file-list-3-line"></i>
+                </div>
+
+                <div class="tarjeta">
+                    <div>
+                        <h3>Este mes</h3>
+                        <p id="totalMesActual">0</p>
+                    </div>
+                    <i class="ri-calendar-line"></i>
+                </div>
+
+                <div class="tarjeta alerta">
+                    <div>
+                        <h3>Pendientes</h3>
+                        <p id="totalPendientes">0</p>
+                    </div>
+                    <i class="ri-time-line"></i>
+                </div>
+
+                <div class="tarjeta">
+                    <div>
+                        <h3>Cotizados</h3>
+                        <p id="totalCotizados">0</p>
+                    </div>
+                    <i class="ri-price-tag-3-line"></i>
+                </div>
+
+                <div class="tarjeta">
+                    <div>
+                        <h3>Finalizados</h3>
+                        <p id="totalFinalizados">0</p>
+                    </div>
+                    <i class="ri-checkbox-circle-line"></i>
+                </div>
+
+            </section>
+
+            <section class="panel">
+
+                <div class="titulo-seccion titulo-con-accion">
+                    <div>
+                        <h2>Resumen mensual</h2>
+                        <p>Visualiza el movimiento de solicitudes recibidas desde la web</p>
                     </div>
                 </div>
 
-                <div class="admin-card">
-                    <i class="fa-solid fa-calendar-days"></i>
-                    <div>
-                        <p>Este mes</p>
-                        <h3 id="totalMesActual">0</h3>
-                    </div>
-                </div>
-
-                <div class="admin-card">
-                    <i class="fa-solid fa-clock"></i>
-                    <div>
-                        <p>Pendientes</p>
-                        <h3 id="totalPendientes">0</h3>
-                    </div>
-                </div>
-
-                <div class="admin-card">
-                    <i class="fa-solid fa-check-double"></i>
-                    <div>
-                        <p>Cotizados</p>
-                        <h3 id="totalCotizados">0</h3>
-                    </div>
-                </div>
-
-                <div class="admin-card">
-                    <i class="fa-solid fa-circle-check"></i>
-                    <div>
-                        <p>Finalizados</p>
-                        <h3 id="totalFinalizados">0</h3>
-                    </div>
-                </div>
-            </div>
-
-                <div class="admin-chart-box">
-                    <div class="admin-box-title">
-                        <div>
-                            <p>Estadística mensual</p>
-                            <h2>Pedidos por mes</h2>
-                        </div>
-                    </div>
-
+                <div class="chart-wrapper cotizaciones-chart">
                     <canvas id="graficoMensual"></canvas>
                 </div>
 
             </section>
 
-            <!-- PEDIDOS -->
-            <section class="admin-section" id="pedidos">
+            <section class="panel">
 
-                <div class="admin-box-title">
+                <div class="titulo-seccion titulo-con-accion">
                     <div>
-                        <p>Gestión de pedidos</p>
-                        <h2>Listado de cotizaciones</h2>
+                        <h2>Listado de Cotizaciones</h2>
+                        <p>Filtra, revisa detalles, actualiza estados y responde por WhatsApp</p>
                     </div>
 
-                    <button id="recargarBtn" class="admin-btn">
-                        <i class="fa-solid fa-rotate"></i>
+                    <button id="recargarBtn" class="boton-guardar boton-recargar-cotizaciones">
+                        <i class="ri-refresh-line"></i>
                         Recargar
                     </button>
                 </div>
 
-                <!-- FILTROS -->
-                <div class="admin-filtros" id="consultas">
-                    <div class="admin-search">
-                        <i class="fa-solid fa-magnifying-glass"></i>
-                        <input type="text" id="busquedaPedido" placeholder="Buscar por código, cliente, teléfono, prenda o bordado...">
+                <div class="filtros-cotizaciones" id="consultas">
+
+                    <div class="buscador-contenedor">
+                        <i class="ri-search-line"></i>
+                        <input type="text" id="busquedaPedido" placeholder="Buscar codigo, cliente, telefono, prenda o bordado...">
                     </div>
 
-                    <select id="filtroEstado">
-                        <option value="Todos">Todos los estados</option>
-                        <option value="Pendiente">Pendiente</option>
-                        <option value="Revisado">Revisado</option>
-                        <option value="Cotizado">Cotizado</option>
-                        <option value="En proceso">En proceso</option>
-                        <option value="Finalizado">Finalizado</option>
-                        <option value="Cancelado">Cancelado</option>
-                    </select>
+                    <div class="grupo-formulario">
+                        <label>Estado</label>
+                        <select id="filtroEstado">
+                            <option value="Todos">Todos los estados</option>
+                            <option value="Pendiente">Pendiente</option>
+                            <option value="Revisado">Revisado</option>
+                            <option value="Cotizado">Cotizado</option>
+                            <option value="En proceso">En proceso</option>
+                            <option value="Finalizado">Finalizado</option>
+                            <option value="Cancelado">Cancelado</option>
+                        </select>
+                    </div>
 
-                    <select id="filtroMes">
-                        <option value="Todos">Todos los meses</option>
-                    </select>
+                    <div class="grupo-formulario">
+                        <label>Mes</label>
+                        <select id="filtroMes">
+                            <option value="Todos">Todos los meses</option>
+                        </select>
+                    </div>
+
                 </div>
 
-                <!-- TABLA -->
-                <div class="admin-table-container">
-                    <table class="admin-table">
+                <div class="tabla-contenedor tabla-cotizaciones">
+
+                    <table>
                         <thead>
                             <tr>
-                                <th>Código</th>
+                                <th>Codigo</th>
                                 <th>Cliente</th>
-                                <th>Teléfono</th>
+                                <th>Telefono</th>
                                 <th>Prenda</th>
                                 <th>Cantidad</th>
                                 <th>Bordado</th>
@@ -209,10 +241,11 @@
 
                         <tbody id="tablaPedidos">
                             <tr>
-                                <td colspan="9">Cargando pedidos...</td>
+                                <td colspan="9">Cargando cotizaciones...</td>
                             </tr>
                         </tbody>
                     </table>
+
                 </div>
 
             </section>
@@ -221,14 +254,13 @@
 
     </div>
 
-    <!-- MODAL DETALLE -->
     <div class="pedido-modal" id="pedidoModal">
         <div class="pedido-modal-card">
-            <button class="cerrar-modal" id="cerrarModal">
-                <i class="fa-solid fa-xmark"></i>
+            <button class="cerrar-modal" id="cerrarModal" type="button">
+                <i class="ri-close-line"></i>
             </button>
 
-            <h2>Detalle del pedido</h2>
+            <h2>Detalle de cotizacion</h2>
 
             <div id="detallePedido" class="detalle-pedido">
                 Cargando...
@@ -237,6 +269,8 @@
     </div>
 
     <script src="js/supabase-config.js"></script>
-    <script src="js/admin.js?v=historial1"></script>
+    <script src="js/admin.js?v=gestion1"></script>
+
 </body>
+
 </html>
