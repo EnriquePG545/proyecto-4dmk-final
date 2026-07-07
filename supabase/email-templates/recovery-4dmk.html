@@ -1,0 +1,78 @@
+<!--
+Asunto sugerido:
+Recupera tu acceso a 4DMK
+
+Pegar en Supabase Dashboard:
+Authentication > Email Templates > Reset Password
+
+Variable importante de Supabase:
+{{ .ConfirmationURL }}
+-->
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Recupera tu acceso a 4DMK</title>
+</head>
+<body style="margin:0;padding:0;background:#070b16;font-family:Arial,Helvetica,sans-serif;color:#ffffff;">
+    <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background:#070b16;margin:0;padding:32px 14px;">
+        <tr>
+            <td align="center">
+                <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width:620px;background:#0d1424;border:1px solid rgba(255,209,102,0.24);border-radius:28px;overflow:hidden;box-shadow:0 24px 70px rgba(0,0,0,0.35);">
+                    <tr>
+                        <td style="padding:0;background:linear-gradient(135deg,#111827 0%,#070b16 52%,#1f2937 100%);">
+                            <div style="padding:34px 34px 26px 34px;border-bottom:1px solid rgba(255,209,102,0.20);">
+                                <div style="display:inline-block;padding:9px 14px;border-radius:999px;background:rgba(255,209,102,0.12);border:1px solid rgba(255,209,102,0.30);color:#ffd166;font-size:13px;font-weight:700;">
+                                    Seguridad de cuenta
+                                </div>
+                                <h1 style="margin:18px 0 8px 0;color:#ffffff;font-size:32px;line-height:1.12;font-weight:800;">
+                                    Recupera tu acceso a <span style="color:#ffd166;">4DMK</span>
+                                </h1>
+                                <p style="margin:0;color:#cbd5e1;font-size:15px;line-height:1.7;">
+                                    Recibimos una solicitud para cambiar la contrase&ntilde;a de tu cuenta. Usa el bot&oacute;n de abajo para crear una nueva contrase&ntilde;a segura.
+                                </p>
+                            </div>
+                        </td>
+                    </tr>
+
+                    <tr>
+                        <td style="padding:34px;">
+                            <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background:#111827;border:1px solid rgba(255,255,255,0.08);border-radius:20px;">
+                                <tr>
+                                    <td style="padding:24px;">
+                                        <p style="margin:0 0 22px 0;color:#d7e3f4;font-size:15px;line-height:1.7;">
+                                            Este enlace es personal y temporal. Si no solicitaste este cambio, puedes ignorar este correo y tu contrase&ntilde;a actual seguir&aacute; igual.
+                                        </p>
+
+                                        <table role="presentation" cellspacing="0" cellpadding="0" align="center" style="margin:0 auto 22px auto;">
+                                            <tr>
+                                                <td align="center" bgcolor="#ffd166" style="border-radius:999px;">
+                                                    <a href="{{ .ConfirmationURL }}" style="display:inline-block;padding:15px 28px;border-radius:999px;background:#ffd166;color:#111827;text-decoration:none;font-size:15px;font-weight:800;">
+                                                        Crear nueva contrase&ntilde;a
+                                                    </a>
+                                                </td>
+                                            </tr>
+                                        </table>
+
+                                        <p style="margin:0;color:#94a3b8;font-size:13px;line-height:1.6;text-align:center;">
+                                            Si el bot&oacute;n no funciona, copia y pega este enlace en tu navegador:
+                                        </p>
+                                        <p style="margin:10px 0 0 0;color:#ffd166;font-size:12px;line-height:1.6;word-break:break-all;text-align:center;">
+                                            {{ .ConfirmationURL }}
+                                        </p>
+                                    </td>
+                                </tr>
+                            </table>
+
+                            <p style="margin:24px 0 0 0;color:#94a3b8;font-size:13px;line-height:1.7;text-align:center;">
+                                4DMK - Sistema de cotizaciones, ventas e inventario.
+                            </p>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+    </table>
+</body>
+</html>

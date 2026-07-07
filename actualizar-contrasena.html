@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="robots" content="noindex, nofollow">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>4DMK | Nueva contrase&ntilde;a</title>
+
+    <meta name="theme-color" content="#070b16">
+    <link rel="manifest" href="/manifest.json">
+    <link rel="apple-touch-icon" href="/img/logo.png">
+    <link rel="stylesheet" href="css/estilos.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+
+<body class="login-page">
+    <main class="login-container">
+        <section class="login-card recovery-card">
+            <a href="index.html" class="login-logo">
+                <img src="img/logo.png" alt="Logo 4DMK">
+            </a>
+
+            <p class="login-tag">Cuenta protegida</p>
+            <h1>Nueva contrase&ntilde;a</h1>
+
+            <p class="login-text">
+                Crea una contrase&ntilde;a nueva para volver a ingresar a tu cuenta 4DMK.
+            </p>
+
+            <form id="actualizarPasswordForm" class="login-form" autocomplete="off">
+                <div class="form-group">
+                    <label for="nuevaPassword">Nueva contrase&ntilde;a</label>
+                    <div class="password-box">
+                        <input
+                            type="password"
+                            id="nuevaPassword"
+                            placeholder="M&iacute;nimo 8 caracteres"
+                            autocomplete="new-password"
+                            required
+                        >
+                        <button type="button" class="toggle-recovery-password" data-target="nuevaPassword">
+                            <i class="fa-solid fa-eye"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="confirmarPassword">Confirmar contrase&ntilde;a</label>
+                    <div class="password-box">
+                        <input
+                            type="password"
+                            id="confirmarPassword"
+                            placeholder="Repite la contrase&ntilde;a"
+                            autocomplete="new-password"
+                            required
+                        >
+                        <button type="button" class="toggle-recovery-password" data-target="confirmarPassword">
+                            <i class="fa-solid fa-eye"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="password-hints">
+                    <span><i class="fa-solid fa-circle-check"></i> Usa 8 caracteres o m&aacute;s</span>
+                    <span><i class="fa-solid fa-circle-check"></i> Evita repetir contrase&ntilde;as antiguas</span>
+                </div>
+
+                <button type="submit" id="btnActualizarPassword" class="btn btn-primary login-btn">
+                    <i class="fa-solid fa-key"></i>
+                    Guardar nueva contrase&ntilde;a
+                </button>
+
+                <p id="actualizarMensaje" class="login-mensaje"></p>
+            </form>
+
+            <a href="login.html" id="volverLoginActualizacion" class="login-volver">
+                <i class="fa-solid fa-arrow-left"></i>
+                Volver al inicio de sesi&oacute;n
+            </a>
+        </section>
+    </main>
+
+    <script src="js/supabase-config.js"></script>
+    <script src="js/actualizar-contrasena.js"></script>
+</body>
+</html>

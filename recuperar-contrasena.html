@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="robots" content="noindex, nofollow">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>4DMK | Recuperar contrase&ntilde;a</title>
+
+    <meta name="theme-color" content="#070b16">
+    <link rel="manifest" href="/manifest.json">
+    <link rel="apple-touch-icon" href="/img/logo.png">
+    <link rel="stylesheet" href="css/estilos.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+
+<body class="login-page">
+    <main class="login-container">
+        <section class="login-card recovery-card">
+            <a href="index.html" class="login-logo">
+                <img src="img/logo.png" alt="Logo 4DMK">
+            </a>
+
+            <p class="login-tag">Seguridad 4DMK</p>
+            <h1>Recuperar contrase&ntilde;a</h1>
+
+            <p class="login-text">
+                Escribe el correo de tu cuenta 4DMK. Si pertenece a una cuenta registrada, enviaremos un enlace seguro para crear una nueva contrase&ntilde;a.
+            </p>
+
+            <form id="recuperarForm" class="login-form" autocomplete="off">
+                <div class="form-group">
+                    <label for="emailRecuperacion">Correo electr&oacute;nico</label>
+                    <input
+                        type="email"
+                        id="emailRecuperacion"
+                        placeholder="correo@ejemplo.com"
+                        autocomplete="email"
+                        required
+                    >
+                </div>
+
+                <button type="submit" id="btnEnviarRecuperacion" class="btn btn-primary login-btn">
+                    <i class="fa-solid fa-paper-plane"></i>
+                    Enviar enlace
+                </button>
+
+                <p id="recuperarMensaje" class="login-mensaje"></p>
+            </form>
+
+            <div class="recovery-note">
+                <i class="fa-solid fa-shield-halved"></i>
+                <p>Por seguridad, 4DMK no muestra si un correo existe o no en el sistema.</p>
+            </div>
+
+            <a href="login.html" id="volverLoginRecuperacion" class="login-volver">
+                <i class="fa-solid fa-arrow-left"></i>
+                Volver al inicio de sesi&oacute;n
+            </a>
+        </section>
+    </main>
+
+    <script src="js/supabase-config.js"></script>
+    <script src="js/recuperar-contrasena.js"></script>
+</body>
+</html>

@@ -1262,6 +1262,28 @@ tbody tr:hover{
 .boton-login i{
     margin-right:8px;
 }
+
+.login-forgot{
+    display:flex;
+    justify-content:flex-end;
+    margin-top:10px;
+    color:#b45309;
+    font-size:13px;
+    font-weight:800;
+    text-decoration:none;
+    transition:0.25s ease;
+}
+
+.login-forgot:hover{
+    color:#111827;
+    transform:translateX(-3px);
+}
+
+.boton-login:disabled,
+.login-input-box input:disabled{
+    cursor:not-allowed;
+    opacity:0.72;
+}
 /* LOGIN PREMIUM ANIMADO */
 
 .body-login{
