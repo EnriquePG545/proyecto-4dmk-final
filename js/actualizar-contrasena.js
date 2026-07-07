@@ -10,7 +10,11 @@ const parametrosActualizacion = new URLSearchParams(window.location.search);
 const hashActualizacion = new URLSearchParams(window.location.hash.replace("#", ""));
 const origenGuardadoActualizacion = sessionStorage.getItem("recuperacionOrigen4DMK");
 const origenActualizacion = origenGuardadoActualizacion === "admin" || parametrosActualizacion.get("origen") === "admin" ? "admin" : "cliente";
-const vieneDeEnlaceRecuperacion = hashActualizacion.get("type") === "recovery" || parametrosActualizacion.has("code");
+const tokenHashRecuperacion = parametrosActualizacion.get("token_hash");
+const tipoRecuperacion = parametrosActualizacion.get("type");
+const accessTokenRecuperacion = hashActualizacion.get("access_token");
+const refreshTokenRecuperacion = hashActualizacion.get("refresh_token");
+const vieneDeEnlaceRecuperacion = tipoRecuperacion === "recovery" || hashActualizacion.get("type") === "recovery" || parametrosActualizacion.has("code");
 const errorRecuperacion = hashActualizacion.get("error") || parametrosActualizacion.get("error");
 const descripcionErrorRecuperacion = hashActualizacion.get("error_description") || parametrosActualizacion.get("error_description");
 
@@ -112,13 +116,44 @@ async function inicializarRecuperacion() {
             return;
         }
 
+        if (tokenHashRecuperacion && tipoRecuperacion === "recovery") {
+            const { error } = await supabaseClient.auth.verifyOtp({
+                token_hash: tokenHashRecuperacion,
+                type: "recovery"
+            });
+
+            if (error) {
+                console.error("Error verificando token hash de recuperacion:", error);
+                mostrarEnlaceInvalido("El enlace de recuperacion no es valido o ya fue usado. Solicita uno nuevo para continuar.");
+                return;
+            }
+
+            limpiarUrlRecuperacion();
+        }
+
+        if (accessTokenRecuperacion && refreshTokenRecuperacion) {
+            const { error } = await supabaseClient.auth.setSession({
+                access_token: accessTokenRecuperacion,
+                refresh_token: refreshTokenRecuperacion
+            });
+
+            if (error) {
+                console.error("Error creando sesion desde enlace:", error);
+                mostrarEnlaceInvalido("No pudimos activar este enlace de recuperacion. Solicita uno nuevo para continuar.");
+                return;
+            }
+
+            limpiarUrlRecuperacion();
+        }
+
         if (parametrosActualizacion.has("code") && supabaseClient.auth.exchangeCodeForSession) {
             await supabaseClient.auth.exchangeCodeForSession(parametrosActualizacion.get("code"));
+            limpiarUrlRecuperacion();
         }
 
         const { data } = await supabaseClient.auth.getSession();
 
-        recuperacionLista = Boolean(data.session && vieneDeEnlaceRecuperacion);
+        recuperacionLista = Boolean(data.session && (vieneDeEnlaceRecuperacion || tokenHashRecuperacion || accessTokenRecuperacion));
 
         if (recuperacionLista) {
             mostrarMensajeActualizacion("Enlace verificado. Escribe tu nueva contrasena.", "success");
@@ -162,6 +197,11 @@ function mostrarEnlaceInvalido(mensaje) {
             : "recuperar-contrasena.html";
     };
     mostrarMensajeActualizacion(mensaje, "error");
+}
+
+function limpiarUrlRecuperacion() {
+    const urlLimpia = `${window.location.origin}${window.location.pathname}`;
+    window.history.replaceState({}, document.title, urlLimpia);
 }
 
 async function resolverDestinoDespuesDeActualizar() {
