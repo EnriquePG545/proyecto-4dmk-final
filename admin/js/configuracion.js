@@ -13,6 +13,10 @@ const estadoConfiguracion = document.getElementById("estadoConfiguracion");
 const btnExportar = document.getElementById("btnExportar");
 const btnExportarExcel = document.getElementById("btnExportarExcel");
 const btnGenerarPDF = document.getElementById("btnGenerarPDF");
+const btnPDFInventarioHilos = document.getElementById("btnPDFInventarioHilos");
+const btnPDFInventarioPelones = document.getElementById("btnPDFInventarioPelones");
+const btnPDFGastosInventario = document.getElementById("btnPDFGastosInventario");
+const btnPDFResumenInventario = document.getElementById("btnPDFResumenInventario");
 
 const btnImportar = document.getElementById("btnImportar");
 const archivoImportar = document.getElementById("archivoImportar");
@@ -460,6 +464,30 @@ btnGenerarPDF.addEventListener("click", async function () {
     ventanaPDF.document.close();
 });
 
+if (btnPDFInventarioHilos) {
+    btnPDFInventarioHilos.addEventListener("click", function () {
+        generarPDFInventario("hilos");
+    });
+}
+
+if (btnPDFInventarioPelones) {
+    btnPDFInventarioPelones.addEventListener("click", function () {
+        generarPDFInventario("pelones");
+    });
+}
+
+if (btnPDFGastosInventario) {
+    btnPDFGastosInventario.addEventListener("click", function () {
+        generarPDFInventario("gastos");
+    });
+}
+
+if (btnPDFResumenInventario) {
+    btnPDFResumenInventario.addEventListener("click", function () {
+        generarPDFInventario("resumen");
+    });
+}
+
 archivoImportar.addEventListener("change", function () {
     const archivo = archivoImportar.files[0];
 
@@ -518,6 +546,305 @@ async function limpiarVentasAnuladasAntiguas() {
 
     alert("Ventas anuladas antiguas limpiadas correctamente.");
     await cargarDatosConfiguracion();
+}
+
+let datosInventarioPDF = {
+    hilos: [],
+    pelones: [],
+    compras: []
+};
+
+async function generarPDFInventario(tipo) {
+    if (!window.jspdf || typeof window.jspdf.jsPDF !== "function") {
+        alert("No se pudo cargar el generador PDF. Revisa la conexion a internet y vuelve a intentarlo.");
+        return;
+    }
+
+    mostrarEstadoConfiguracion("Preparando PDF de inventario...", "info");
+
+    const cargado = await cargarDatosInventarioPDF();
+
+    if (!cargado) {
+        mostrarEstadoConfiguracion("No se pudo preparar el PDF.", "error");
+        return;
+    }
+
+    const doc = crearDocumentoInventarioPDF(obtenerTituloPDFInventario(tipo));
+
+    if (typeof doc.autoTable !== "function") {
+        alert("No se pudo cargar el formato de tablas PDF. Recarga la pagina e intenta nuevamente.");
+        return;
+    }
+
+    if (tipo === "hilos") {
+        generarTablaPDFInventario(doc, "Inventario de hilos", [
+            "Codigo",
+            "Color",
+            "Marca",
+            "Stock",
+            "Precio",
+            "Detalle",
+            "Actualizado"
+        ], datosInventarioPDF.hilos.map(function (hilo) {
+            return [
+                hilo.codigo_hilo,
+                hilo.nombre_color,
+                hilo.marca,
+                Number(hilo.stock || 0),
+                formatearDineroPDF(hilo.precio_compra),
+                hilo.detalle_compra || "-",
+                formatearFechaSQL(hilo.updated_at)
+            ];
+        }));
+    }
+
+    if (tipo === "pelones") {
+        generarTablaPDFInventario(doc, "Inventario pelones", [
+            "Tipo",
+            "% restante",
+            "Rollos",
+            "Precio",
+            "Proveedor",
+            "Detalle",
+            "Actualizado"
+        ], ordenarPelonesPDF(datosInventarioPDF.pelones).map(function (pelon) {
+            return [
+                pelon.tipo_pelon,
+                `${Number(pelon.porcentaje || 0)}%`,
+                Number(pelon.rollos_gigantes || 0),
+                formatearDineroPDF(pelon.precio_compra),
+                pelon.proveedores?.nombre_tienda || pelon.codigo_tienda || "-",
+                pelon.detalle_compra || "-",
+                formatearFechaSQL(pelon.updated_at)
+            ];
+        }));
+    }
+
+    if (tipo === "gastos") {
+        generarTablaPDFInventario(doc, "Gastos registrados en compras de hilos", [
+            "Fecha",
+            "Codigo",
+            "Color",
+            "Proveedor",
+            "Cantidad",
+            "Precio",
+            "Total",
+            "Detalle"
+        ], datosInventarioPDF.compras.map(function (compra) {
+            const total = Number(compra.total_compra ?? (Number(compra.cantidad || 0) * Number(compra.precio_unitario || 0)));
+
+            return [
+                formatearFechaSQL(compra.fecha_compra),
+                compra.codigo_hilo_snapshot,
+                compra.nombre_color_snapshot,
+                compra.proveedores?.nombre_tienda || compra.codigo_tienda || "-",
+                Number(compra.cantidad || 0),
+                formatearDineroPDF(compra.precio_unitario),
+                formatearDineroPDF(total),
+                compra.detalle_compra || "-"
+            ];
+        }));
+    }
+
+    if (tipo === "resumen") {
+        generarResumenPDFInventario(doc);
+    }
+
+    agregarPiePDFInventario(doc);
+    doc.save(`4dmk-${tipo}-inventario-${obtenerFechaNombreArchivo()}.pdf`);
+    mostrarEstadoConfiguracion("PDF generado correctamente.", "exito");
+}
+
+async function cargarDatosInventarioPDF() {
+    const [hilosRes, pelonesRes, comprasRes] = await Promise.all([
+        supabaseClient
+            .from("inventario_hilos")
+            .select("*")
+            .order("codigo_hilo", { ascending: true }),
+        supabaseClient
+            .from("pelones")
+            .select(`
+                *,
+                proveedores (
+                    codigo_tienda,
+                    nombre_tienda
+                )
+            `)
+            .order("tipo_pelon", { ascending: true }),
+        supabaseClient
+            .from("compras_hilos")
+            .select(`
+                *,
+                proveedores (
+                    codigo_tienda,
+                    nombre_tienda
+                )
+            `)
+            .order("fecha_compra", { ascending: false })
+    ]);
+
+    const error = hilosRes.error || pelonesRes.error || comprasRes.error;
+
+    if (error) {
+        console.error(error);
+        alert("No se pudo cargar el inventario desde Supabase para generar el PDF.");
+        return false;
+    }
+
+    datosInventarioPDF = {
+        hilos: hilosRes.data || [],
+        pelones: pelonesRes.data || [],
+        compras: comprasRes.data || []
+    };
+
+    return true;
+}
+
+function crearDocumentoInventarioPDF(titulo) {
+    const doc = new window.jspdf.jsPDF({
+        orientation: "landscape",
+        unit: "mm",
+        format: "a4"
+    });
+    const ancho = doc.internal.pageSize.getWidth();
+
+    doc.setProperties({
+        title: `4DMK - ${titulo}`,
+        subject: "Reporte de inventario",
+        author: "Sistema 4DMK"
+    });
+    doc.setFillColor(17, 24, 39);
+    doc.rect(0, 0, ancho, 30, "F");
+    doc.setTextColor(250, 204, 21);
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(22);
+    doc.text("4DMK", 14, 14);
+    doc.setTextColor(255, 255, 255);
+    doc.setFontSize(13);
+    doc.text(titulo, 14, 23);
+    doc.setTextColor(75, 85, 99);
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(9);
+    doc.text(`Generado: ${new Date().toLocaleString("es-PE")}`, ancho - 14, 23, { align: "right" });
+
+    return doc;
+}
+
+function generarTablaPDFInventario(doc, titulo, encabezados, filas) {
+    doc.setTextColor(17, 24, 39);
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(14);
+    doc.text(titulo, 14, 40);
+
+    const cuerpo = filas.length > 0
+        ? filas
+        : [encabezados.map((_, indice) => indice === 0 ? "No hay registros." : "")];
+
+    doc.autoTable({
+        startY: 44,
+        head: [encabezados],
+        body: cuerpo,
+        theme: "grid",
+        margin: { left: 14, right: 14 },
+        styles: {
+            font: "helvetica",
+            fontSize: 7.5,
+            cellPadding: 2.5,
+            textColor: [31, 41, 55],
+            lineColor: [229, 231, 235],
+            lineWidth: 0.2
+        },
+        headStyles: {
+            fillColor: [17, 24, 39],
+            textColor: [255, 255, 255],
+            fontStyle: "bold"
+        },
+        alternateRowStyles: {
+            fillColor: [249, 250, 251]
+        }
+    });
+}
+
+function generarResumenPDFInventario(doc) {
+    const gastoCompras = datosInventarioPDF.compras.reduce(function (total, compra) {
+        return total + Number(compra.total_compra ?? (Number(compra.cantidad || 0) * Number(compra.precio_unitario || 0)));
+    }, 0);
+    const valorHilos = datosInventarioPDF.hilos.reduce(function (total, hilo) {
+        return total + Number(hilo.stock || 0) * Number(hilo.precio_compra || 0);
+    }, 0);
+    const valorPelones = datosInventarioPDF.pelones.reduce(function (total, pelon) {
+        return total + Number(pelon.rollos_gigantes || 0) * Number(pelon.precio_compra || 0);
+    }, 0);
+
+    doc.setTextColor(17, 24, 39);
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(14);
+    doc.text("Resumen general del inventario", 14, 40);
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(10);
+    doc.text(`Compras registradas: ${formatearDineroPDF(gastoCompras)}`, 14, 48);
+    doc.text(`Valor registrado de hilos: ${formatearDineroPDF(valorHilos)}`, 14, 55);
+    doc.text(`Valor registrado de pelones: ${formatearDineroPDF(valorPelones)}`, 14, 62);
+
+    const filas = [
+        ...datosInventarioPDF.hilos.map(function (hilo) {
+            const valor = Number(hilo.stock || 0) * Number(hilo.precio_compra || 0);
+            return ["Hilo", hilo.codigo_hilo, hilo.nombre_color, Number(hilo.stock || 0), formatearDineroPDF(hilo.precio_compra), formatearDineroPDF(valor)];
+        }),
+        ...ordenarPelonesPDF(datosInventarioPDF.pelones).map(function (pelon) {
+            const valor = Number(pelon.rollos_gigantes || 0) * Number(pelon.precio_compra || 0);
+            return ["Pelon", pelon.tipo_pelon, `${Number(pelon.porcentaje || 0)}% restante`, Number(pelon.rollos_gigantes || 0), formatearDineroPDF(pelon.precio_compra), formatearDineroPDF(valor)];
+        })
+    ];
+
+    doc.autoTable({
+        startY: 68,
+        head: [["Tipo", "Codigo o tipo", "Detalle", "Cantidad", "Precio", "Valor registrado"]],
+        body: filas.length > 0 ? filas : [["-", "No hay registros.", "-", "-", "-", "-"]],
+        theme: "grid",
+        margin: { left: 14, right: 14 },
+        styles: { font: "helvetica", fontSize: 8, cellPadding: 3, textColor: [31, 41, 55] },
+        headStyles: { fillColor: [17, 24, 39], textColor: [255, 255, 255], fontStyle: "bold" },
+        alternateRowStyles: { fillColor: [249, 250, 251] }
+    });
+}
+
+function agregarPiePDFInventario(doc) {
+    const paginas = doc.internal.getNumberOfPages();
+
+    for (let pagina = 1; pagina <= paginas; pagina += 1) {
+        doc.setPage(pagina);
+        const alto = doc.internal.pageSize.getHeight();
+        const ancho = doc.internal.pageSize.getWidth();
+        doc.setDrawColor(229, 231, 235);
+        doc.line(14, alto - 13, ancho - 14, alto - 13);
+        doc.setTextColor(107, 114, 128);
+        doc.setFont("helvetica", "normal");
+        doc.setFontSize(8);
+        doc.text("4DMK | Reporte generado desde Supabase", 14, alto - 7);
+        doc.text(`Pagina ${pagina} de ${paginas}`, ancho - 14, alto - 7, { align: "right" });
+    }
+}
+
+function obtenerTituloPDFInventario(tipo) {
+    const titulos = {
+        hilos: "Inventario de hilos",
+        pelones: "Inventario pelones",
+        gastos: "Gastos de compras",
+        resumen: "Resumen de inventario"
+    };
+
+    return titulos[tipo] || "Reporte de inventario";
+}
+
+function ordenarPelonesPDF(lista) {
+    const orden = ["Pelon Desgarrable", "Pelon Direccional", "Pelon Galleta"];
+
+    return [...lista].sort((a, b) => orden.indexOf(a.tipo_pelon) - orden.indexOf(b.tipo_pelon));
+}
+
+function formatearDineroPDF(valor) {
+    return `S/ ${Number(valor || 0).toFixed(2)}`;
 }
 
 function descargarBlob(archivo, nombre) {

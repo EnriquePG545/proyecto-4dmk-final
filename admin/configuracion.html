@@ -10,6 +10,8 @@
     <link rel="stylesheet" href="css/estilos.css">
     <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jspdf-autotable@3.8.2/dist/jspdf.plugin.autotable.min.js"></script>
 </head>
 
 <body>
@@ -138,6 +140,67 @@
                         <p id="estadoRespaldo">Activo</p>
                     </div>
                     <i class="ri-shield-check-line"></i>
+                </div>
+
+            </section>
+
+            <section class="panel">
+
+                <div class="titulo-seccion">
+                    <h2>Reportes de inventario en PDF</h2>
+                    <p>Descarga documentos formales con el inventario actual y el gasto registrado.</p>
+                </div>
+
+                <div class="config-grid config-grid-cuatro">
+
+                    <div class="config-card">
+                        <div class="config-icono">
+                            <i class="ri-palette-line"></i>
+                        </div>
+                        <h3>Inventario de hilos</h3>
+                        <p>Codigo, color, marca, stock, precio y detalle de cada hilo.</p>
+                        <button class="boton-guardar boton-pdf" id="btnPDFInventarioHilos">
+                            <i class="ri-file-pdf-2-line"></i>
+                            Descargar PDF
+                        </button>
+                    </div>
+
+                    <div class="config-card">
+                        <div class="config-icono">
+                            <i class="ri-stack-line"></i>
+                        </div>
+                        <h3>Inventario pelones</h3>
+                        <p>Porcentaje restante, rollos gigantes, precio y proveedor relacionado.</p>
+                        <button class="boton-guardar boton-pdf" id="btnPDFInventarioPelones">
+                            <i class="ri-file-pdf-2-line"></i>
+                            Descargar PDF
+                        </button>
+                    </div>
+
+                    <div class="config-card">
+                        <div class="config-icono">
+                            <i class="ri-money-dollar-circle-line"></i>
+                        </div>
+                        <h3>Gastos de compras</h3>
+                        <p>Historial de compras de hilos con cantidades, precios y totales.</p>
+                        <button class="boton-guardar boton-pdf" id="btnPDFGastosInventario">
+                            <i class="ri-file-pdf-2-line"></i>
+                            Descargar PDF
+                        </button>
+                    </div>
+
+                    <div class="config-card">
+                        <div class="config-icono">
+                            <i class="ri-file-chart-line"></i>
+                        </div>
+                        <h3>Resumen de inventario</h3>
+                        <p>Consolida cantidades, precios y valor registrado de hilos y pelones.</p>
+                        <button class="boton-guardar boton-pdf" id="btnPDFResumenInventario">
+                            <i class="ri-file-pdf-2-line"></i>
+                            Descargar PDF
+                        </button>
+                    </div>
+
                 </div>
 
             </section>

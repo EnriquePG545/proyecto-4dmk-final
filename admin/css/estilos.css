@@ -2007,6 +2007,10 @@ tbody tr:hover td{
     grid-template-columns:repeat(3,1fr);
 }
 
+.config-grid-cuatro{
+    grid-template-columns:repeat(4,1fr);
+}
+
 .config-grid-uno{
     grid-template-columns:1fr;
 }
@@ -2035,7 +2039,8 @@ tbody tr:hover td{
 }
 
 @media(max-width:1100px){
-    .config-grid-tres{
+    .config-grid-tres,
+    .config-grid-cuatro{
         grid-template-columns:1fr;
     }
 }
