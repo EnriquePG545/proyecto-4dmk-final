@@ -10,11 +10,9 @@ const inputCodigoTienda = document.getElementById("codigoTienda");
 const inputNombreTienda = document.getElementById("nombreTienda");
 const inputDireccionProveedor = document.getElementById("direccionProveedor");
 const inputTelefonoProveedor = document.getElementById("telefonoProveedor");
-const inputEstadoProveedor = document.getElementById("estadoProveedor");
 const inputObservacionProveedor = document.getElementById("observacionProveedor");
 
-const proveedoresActivos = document.getElementById("proveedoresActivos");
-const proveedoresInactivos = document.getElementById("proveedoresInactivos");
+const proveedoresRegistrados = document.getElementById("proveedoresRegistrados");
 const hilosRelacionados = document.getElementById("hilosRelacionados");
 const pelonesRelacionados = document.getElementById("pelonesRelacionados");
 
@@ -48,8 +46,7 @@ formProveedor.addEventListener("submit", async function (event) {
         nombre_tienda: inputNombreTienda.value.trim(),
         direccion_proveedor: inputDireccionProveedor.value.trim() || "-",
         telefono: inputTelefonoProveedor.value.trim() || "-",
-        observacion: inputObservacionProveedor.value.trim() || null,
-        activo: inputEstadoProveedor.value === "true"
+        observacion: inputObservacionProveedor.value.trim() || null
     };
 
     if (!proveedor.codigo_tienda || !proveedor.nombre_tienda) {
@@ -71,7 +68,7 @@ async function cargarDatosProveedores() {
     const [proveedoresRes, hilosRes, pelonesRes] = await Promise.all([
         supabaseClient
             .from("proveedores")
-            .select("*")
+            .select("codigo_tienda, nombre_tienda, direccion_proveedor, telefono, observacion")
             .order("nombre_tienda", { ascending: true }),
         supabaseClient
             .from("inventario_hilos")
@@ -87,7 +84,7 @@ async function cargarDatosProveedores() {
         console.error(error);
         tablaProveedores.innerHTML = `
             <tr>
-                <td colspan="7">No se pudieron cargar los proveedores.</td>
+                <td colspan="6">No se pudieron cargar los proveedores.</td>
             </tr>
         `;
         alert("No se pudieron cargar los proveedores. Verifica que la migracion de Supabase este aplicada.");
@@ -123,8 +120,7 @@ async function actualizarProveedor(proveedor) {
         nombre_tienda: proveedor.nombre_tienda,
         direccion_proveedor: proveedor.direccion_proveedor,
         telefono: proveedor.telefono,
-        observacion: proveedor.observacion,
-        activo: proveedor.activo
+        observacion: proveedor.observacion
     };
 
     const { error } = await supabaseClient
@@ -144,15 +140,9 @@ async function actualizarProveedor(proveedor) {
 }
 
 function mostrarResumenProveedores() {
-    const activos = proveedores.filter(proveedor => proveedor.activo).length;
-    const inactivos = proveedores.length - activos;
-    const hilosConProveedor = hilosProveedor.filter(item => item.codigo_tienda).length;
-    const pelonesConProveedor = pelonesProveedor.filter(item => item.codigo_tienda).length;
-
-    proveedoresActivos.textContent = activos;
-    proveedoresInactivos.textContent = inactivos;
-    hilosRelacionados.textContent = hilosConProveedor;
-    pelonesRelacionados.textContent = pelonesConProveedor;
+    proveedoresRegistrados.textContent = proveedores.length;
+    hilosRelacionados.textContent = hilosProveedor.filter(item => item.codigo_tienda).length;
+    pelonesRelacionados.textContent = pelonesProveedor.filter(item => item.codigo_tienda).length;
 }
 
 function mostrarProveedores() {
@@ -166,7 +156,7 @@ function mostrarProveedores() {
                 proveedor.nombre_tienda,
                 proveedor.direccion_proveedor,
                 proveedor.telefono,
-                proveedor.activo ? "activo" : "inactivo",
+                proveedor.observacion,
                 uso.hilos,
                 uso.pelones
             ].join(" ").toLowerCase();
@@ -180,7 +170,7 @@ function mostrarProveedores() {
     if (proveedoresFiltrados.length === 0) {
         tablaProveedores.innerHTML = `
             <tr>
-                <td colspan="7">No se encontraron proveedores relacionados.</td>
+                <td colspan="6">No se encontraron proveedores relacionados.</td>
             </tr>
         `;
         return;
@@ -191,10 +181,6 @@ function mostrarProveedores() {
     proveedoresFiltrados.forEach(function (proveedor) {
         const fila = document.createElement("tr");
         const uso = obtenerUsoProveedor(proveedor.codigo_tienda);
-        const claseEstado = proveedor.activo ? "estado-proveedor estado-proveedor-activo" : "estado-proveedor estado-proveedor-inactivo";
-        const textoEstado = proveedor.activo ? "Activo" : "Inactivo";
-        const accionEstado = proveedor.activo ? "Inactivar" : "Reactivar";
-        const iconoEstado = proveedor.activo ? "ri-pause-circle-line" : "ri-play-circle-line";
 
         fila.innerHTML = `
             <td><strong>${escaparHTML(proveedor.codigo_tienda)}</strong></td>
@@ -205,16 +191,10 @@ function mostrarProveedores() {
                 <span class="badge-relacion">${uso.hilos} hilos</span>
                 <span class="badge-relacion badge-relacion-secundario">${uso.pelones} pelones</span>
             </td>
-            <td><span class="${claseEstado}">${textoEstado}</span></td>
             <td>
                 <button type="button" class="boton-tabla editar" onclick="editarProveedor('${escaparAtributoProveedor(proveedor.codigo_tienda)}')">
                     <i class="ri-edit-line"></i>
                     Editar
-                </button>
-
-                <button type="button" class="boton-tabla eliminar" onclick="cambiarEstadoProveedor('${escaparAtributoProveedor(proveedor.codigo_tienda)}', ${!proveedor.activo})">
-                    <i class="${iconoEstado}"></i>
-                    ${accionEstado}
                 </button>
             </td>
         `;
@@ -236,7 +216,6 @@ function editarProveedor(codigoTienda) {
     inputNombreTienda.value = proveedor.nombre_tienda;
     inputDireccionProveedor.value = proveedor.direccion_proveedor || "";
     inputTelefonoProveedor.value = proveedor.telefono || "";
-    inputEstadoProveedor.value = proveedor.activo ? "true" : "false";
     inputObservacionProveedor.value = proveedor.observacion || "";
 
     editandoProveedor = true;
@@ -249,29 +228,6 @@ function editarProveedor(codigoTienda) {
     window.scrollTo({ top: 0, behavior: "smooth" });
 }
 
-async function cambiarEstadoProveedor(codigoTienda, nuevoEstado) {
-    const textoAccion = nuevoEstado ? "reactivar" : "inactivar";
-    const confirmar = confirm(`Estas seguro de ${textoAccion} este proveedor?`);
-
-    if (!confirmar) {
-        return;
-    }
-
-    const { error } = await supabaseClient
-        .from("proveedores")
-        .update({ activo: nuevoEstado })
-        .eq("codigo_tienda", codigoTienda);
-
-    if (error) {
-        console.error(error);
-        alert("No se pudo cambiar el estado del proveedor.");
-        return;
-    }
-
-    alert("Estado del proveedor actualizado correctamente.");
-    await cargarDatosProveedores();
-}
-
 function obtenerUsoProveedor(codigoTienda) {
     return {
         hilos: hilosProveedor.filter(item => item.codigo_tienda === codigoTienda).length,
@@ -282,7 +238,6 @@ function obtenerUsoProveedor(codigoTienda) {
 function limpiarFormularioProveedor() {
     formProveedor.reset();
     inputCodigoTienda.disabled = false;
-    inputEstadoProveedor.value = "true";
     editandoProveedor = false;
     codigoProveedorEditando = null;
     tituloFormularioProveedor.textContent = "Nuevo Proveedor";

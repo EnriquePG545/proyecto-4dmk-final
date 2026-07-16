@@ -1,4 +1,4 @@
-const CACHE_NAME = "4dmk-pwa-v7";
+const CACHE_NAME = "4dmk-pwa-v8";
 
 const STATIC_ASSETS = [
     "/",

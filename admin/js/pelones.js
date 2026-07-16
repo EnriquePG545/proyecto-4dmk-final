@@ -89,7 +89,7 @@ function mostrarPelones() {
                 </div>
 
                 <div class="pelon-controles">
-                    <label>Disponibilidad</label>
+                    <label>Porcentaje restante</label>
                     <input type="range" min="0" max="100" value="${porcentaje}" class="rango-pelon" data-tipo="${escaparHTML(pelon.tipo_pelon)}">
                     <div class="pelon-rango-texto">
                         <span>0%</span>
@@ -110,6 +110,11 @@ function mostrarPelones() {
                 <div class="grupo-formulario">
                     <label>Precio compra</label>
                     <input type="number" min="0" step="0.01" class="precio-compra-pelon" data-tipo="${escaparHTML(pelon.tipo_pelon)}" value="${Number(pelon.precio_compra || 0).toFixed(2)}">
+                </div>
+
+                <div class="grupo-formulario">
+                    <label>Rollos gigantes disponibles</label>
+                    <input type="number" min="0" step="1" class="rollos-gigantes-pelon" data-tipo="${escaparHTML(pelon.tipo_pelon)}" value="${Number(pelon.rollos_gigantes || 0)}">
                 </div>
 
                 <div class="grupo-formulario">
@@ -162,10 +167,11 @@ async function guardarPelon(tipoPelon) {
     const rango = document.querySelector(`.rango-pelon[data-tipo="${CSS.escape(tipoPelon)}"]`);
     const proveedor = document.querySelector(`.select-proveedor-pelon[data-tipo="${CSS.escape(tipoPelon)}"]`);
     const precio = document.querySelector(`.precio-compra-pelon[data-tipo="${CSS.escape(tipoPelon)}"]`);
+    const rollos = document.querySelector(`.rollos-gigantes-pelon[data-tipo="${CSS.escape(tipoPelon)}"]`);
     const fecha = document.querySelector(`.fecha-compra-pelon[data-tipo="${CSS.escape(tipoPelon)}"]`);
     const detalle = document.querySelector(`.detalle-compra-pelon[data-tipo="${CSS.escape(tipoPelon)}"]`);
 
-    if (!rango || !proveedor || !precio || !fecha || !detalle) {
+    if (!rango || !proveedor || !precio || !rollos || !fecha || !detalle) {
         alert("No se encontro el pelon seleccionado.");
         return;
     }
@@ -173,9 +179,15 @@ async function guardarPelon(tipoPelon) {
     const porcentaje = normalizarPorcentajePelon(rango.value);
     const estado = obtenerEstadoPorcentaje(porcentaje);
     const precioCompra = Number(precio.value || 0);
+    const rollosGigantes = Number(rollos.value || 0);
 
     if (Number.isNaN(precioCompra) || precioCompra < 0) {
         alert("El precio de compra del pelon debe ser mayor o igual a cero.");
+        return;
+    }
+
+    if (!Number.isInteger(rollosGigantes) || rollosGigantes < 0) {
+        alert("Los rollos gigantes deben ser un numero entero mayor o igual a cero.");
         return;
     }
 
@@ -186,6 +198,7 @@ async function guardarPelon(tipoPelon) {
             estado: estado.valor,
             codigo_tienda: proveedor.value || null,
             precio_compra: precioCompra,
+            rollos_gigantes: rollosGigantes,
             fecha_compra: fecha.value || null,
             detalle_compra: detalle.value.trim() || null
         })
@@ -229,8 +242,7 @@ function crearOpcionesProveedorPelon(codigoActual) {
 
     proveedoresPelones.forEach(function (proveedor) {
         const selected = proveedor.codigo_tienda === codigoActual ? "selected" : "";
-        const estado = proveedor.activo ? "" : " (inactivo)";
-        opciones.push(`<option value="${escaparHTML(proveedor.codigo_tienda)}" ${selected}>${escaparHTML(proveedor.nombre_tienda)} - ${escaparHTML(proveedor.codigo_tienda)}${estado}</option>`);
+        opciones.push(`<option value="${escaparHTML(proveedor.codigo_tienda)}" ${selected}>${escaparHTML(proveedor.nombre_tienda)} - ${escaparHTML(proveedor.codigo_tienda)}</option>`);
     });
 
     return opciones.join("");

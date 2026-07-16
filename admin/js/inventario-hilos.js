@@ -12,9 +12,7 @@ const inputCodigoHilo = document.getElementById("codigoHilo");
 const inputNombreColor = document.getElementById("nombreColor");
 const inputMarcaHilo = document.getElementById("marcaHilo");
 const inputStockHilo = document.getElementById("stockHilo");
-const inputProveedorHilo = document.getElementById("proveedorHilo");
 const inputPrecioCompraHilo = document.getElementById("precioCompraHilo");
-const inputFechaCompraHilo = document.getElementById("fechaCompraHilo");
 const inputDetalleCompraHilo = document.getElementById("detalleCompraHilo");
 
 const inputHiloCompra = document.getElementById("hiloCompra");
@@ -89,9 +87,7 @@ formHilo.addEventListener("submit", async function (event) {
         nombre_color: inputNombreColor.value.trim(),
         marca: inputMarcaHilo.value,
         stock: inputStockHilo.value.trim() === "" ? 0 : Number(inputStockHilo.value),
-        codigo_tienda: inputProveedorHilo.value || null,
         precio_compra: inputPrecioCompraHilo.value.trim() === "" ? 0 : Number(inputPrecioCompraHilo.value),
-        fecha_compra: inputFechaCompraHilo.value || null,
         detalle_compra: inputDetalleCompraHilo.value.trim() || null
     };
 
@@ -141,7 +137,7 @@ async function cargarHilos() {
         console.error(error);
         tablaHilos.innerHTML = `
             <tr>
-                <td colspan="9">No se pudo cargar el inventario de hilos.</td>
+                <td colspan="8">No se pudo cargar el inventario de hilos.</td>
             </tr>
         `;
         alert("No se pudo cargar el inventario de hilos.");
@@ -263,13 +259,11 @@ function mostrarHilos() {
 
     const hilosFiltrados = hilos
         .filter(function (hilo) {
-            const proveedor = obtenerNombreProveedorHilo(hilo);
             const campos = [
                 hilo.codigo_hilo,
                 hilo.nombre_color,
                 hilo.marca,
                 hilo.stock,
-                proveedor,
                 hilo.precio_compra,
                 hilo.detalle_compra
             ].join(" ").toLowerCase();
@@ -283,7 +277,7 @@ function mostrarHilos() {
     if (hilosFiltrados.length === 0) {
         tablaHilos.innerHTML = `
             <tr>
-                <td colspan="9">No se encontraron hilos relacionados.</td>
+                <td colspan="8">No se encontraron hilos relacionados.</td>
             </tr>
         `;
         return;
@@ -295,14 +289,11 @@ function mostrarHilos() {
         const fila = document.createElement("tr");
         const stock = Number(hilo.stock || 0);
         const claseStock = stock <= umbralStockHilos ? "stock-hilo stock-hilo-bajo" : "stock-hilo";
-        const proveedor = obtenerNombreProveedorHilo(hilo);
-
         fila.innerHTML = `
             <td><strong>${escaparHTML(hilo.codigo_hilo)}</strong></td>
             <td>${escaparHTML(hilo.nombre_color)}</td>
             <td><span class="marca-hilo">${escaparHTML(hilo.marca)}</span></td>
             <td><span class="${claseStock}">${stock}</span></td>
-            <td>${escaparHTML(proveedor)}</td>
             <td>${formatearDineroHilo(hilo.precio_compra)}</td>
             <td>${escaparHTML(hilo.detalle_compra || "-")}</td>
             <td>${formatearFechaHilo(hilo.updated_at)}</td>
@@ -368,9 +359,7 @@ function editarHilo(idHilo) {
     inputNombreColor.value = hilo.nombre_color;
     inputMarcaHilo.value = hilo.marca;
     inputStockHilo.value = hilo.stock;
-    inputProveedorHilo.value = hilo.codigo_tienda || "";
     inputPrecioCompraHilo.value = Number(hilo.precio_compra || 0).toFixed(2);
-    inputFechaCompraHilo.value = hilo.fecha_compra || "";
     inputDetalleCompraHilo.value = hilo.detalle_compra || "";
 
     editandoHilo = true;
@@ -412,9 +401,7 @@ async function eliminarHilo(idHilo) {
 function limpiarFormularioHilo() {
     formHilo.reset();
     inputMarcaHilo.value = "Lumina";
-    inputProveedorHilo.value = "";
     inputPrecioCompraHilo.value = "";
-    inputFechaCompraHilo.value = "";
     inputDetalleCompraHilo.value = "";
 
     editandoHilo = false;
@@ -431,18 +418,8 @@ function limpiarFormularioCompraHilo() {
 }
 
 function actualizarSelectsHilos() {
-    if (inputProveedorHilo) {
-        const opcionesProveedorHilo = proveedores.map(function (proveedor) {
-            const estado = proveedor.activo ? "" : " (inactivo)";
-            return `<option value="${escaparHTML(proveedor.codigo_tienda)}">${escaparHTML(proveedor.nombre_tienda)} - ${escaparHTML(proveedor.codigo_tienda)}${estado}</option>`;
-        }).join("");
-
-        inputProveedorHilo.innerHTML = `<option value="">Sin proveedor asignado</option>${opcionesProveedorHilo}`;
-    }
-
     if (inputProveedorCompra) {
-        const proveedoresActivos = proveedores.filter(proveedor => proveedor.activo);
-        const opcionesProveedorCompra = proveedoresActivos.map(function (proveedor) {
+        const opcionesProveedorCompra = proveedores.map(function (proveedor) {
             return `<option value="${escaparHTML(proveedor.codigo_tienda)}">${escaparHTML(proveedor.nombre_tienda)} - ${escaparHTML(proveedor.codigo_tienda)}</option>`;
         }).join("");
 

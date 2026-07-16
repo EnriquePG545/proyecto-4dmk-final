@@ -175,7 +175,7 @@ function mostrarHilosStockBajo(listaHilos) {
     if (listaHilos.length === 0) {
         tablaHilosStockBajo.innerHTML = `
             <tr>
-                <td colspan="5">No hay hilos con stock bajo.</td>
+                <td colspan="4">No hay hilos con stock bajo.</td>
             </tr>
         `;
         return;
@@ -183,14 +183,11 @@ function mostrarHilosStockBajo(listaHilos) {
 
     listaHilos.forEach(function (hilo) {
         const fila = document.createElement("tr");
-        const proveedor = hilo.proveedores?.nombre_tienda || "Sin proveedor";
-
         fila.innerHTML = `
             <td><strong>${textoSeguro(hilo.codigo_hilo)}</strong></td>
             <td>${textoSeguro(hilo.nombre_color)}</td>
             <td><span class="marca-hilo">${textoSeguro(hilo.marca)}</span></td>
             <td><span class="stock-hilo stock-hilo-bajo">${Number(hilo.stock || 0)}</span></td>
-            <td>${textoSeguro(proveedor)}</td>
         `;
 
         tablaHilosStockBajo.appendChild(fila);

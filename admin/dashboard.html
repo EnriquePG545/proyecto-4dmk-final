@@ -68,7 +68,7 @@
 
                 <a href="pelones.html">
                     <i class="ri-stack-line"></i>
-                    Pelones
+                    Inventario Pelones
                 </a>
 
                 <a href="calcupelones.html">
@@ -109,18 +109,19 @@
 
             <section class="tarjetas">
 
-                <div class="tarjeta alerta">
+                <div class="tarjeta alerta tarjeta-interactiva" role="button" tabindex="0" onclick="abrirModalStockBajoDashboard()" onkeydown="if(event.key === 'Enter' || event.key === ' ') { event.preventDefault(); abrirModalStockBajoDashboard(); }">
                     <div>
-                        <h3>Hilos stock bajo</h3>
-                        <p id="dashHilosStockBajo">0</p>
+                        <h3>Stock bajo</h3>
+                        <p id="dashStockBajoTotal">0</p>
+                        <small>Hilos y pelones</small>
                     </div>
                     <i class="ri-error-warning-line"></i>
                 </div>
 
                 <div class="tarjeta">
                     <div>
-                        <h3>Proveedores activos</h3>
-                        <p id="dashProveedoresActivos">0</p>
+                        <h3>Proveedores registrados</h3>
+                        <p id="dashProveedoresRegistrados">0</p>
                     </div>
                     <i class="ri-store-2-line"></i>
                 </div>
@@ -131,14 +132,6 @@
                         <p id="dashGastoMes">S/ 0.00</p>
                     </div>
                     <i class="ri-money-dollar-circle-line"></i>
-                </div>
-
-                <div class="tarjeta">
-                    <div>
-                        <h3>Pelones promedio</h3>
-                        <p id="dashPelonesPromedio">0%</p>
-                    </div>
-                    <i class="ri-stack-line"></i>
                 </div>
 
             </section>
@@ -220,7 +213,7 @@
                 <article class="panel dashboard-card dashboard-card-ancha">
                     <div class="titulo-seccion">
                         <h2>Cantidad de Pelones</h2>
-                        <p>Porcentaje disponible de cada tipo de pelon</p>
+                        <p>Porcentaje restante de cada tipo de pelon</p>
                     </div>
                     <div class="chart-wrapper chart-wrapper-horizontal">
                         <canvas id="chartPelones"></canvas>
@@ -245,15 +238,67 @@
                                 <th>Color</th>
                                 <th>Marca</th>
                                 <th>Stock</th>
-                                <th>Proveedor</th>
                             </tr>
                         </thead>
                         <tbody id="tablaDashboardHilosBajos">
                             <tr>
-                                <td colspan="5">Cargando hilos...</td>
+                                <td colspan="4">Cargando hilos...</td>
                             </tr>
                         </tbody>
                     </table>
+
+                </div>
+
+            </section>
+
+            <section class="stock-bajo-modal" id="modalStockBajoDashboard" hidden aria-hidden="true">
+
+                <div class="stock-bajo-modal-card" role="dialog" aria-modal="true" aria-labelledby="tituloStockBajoDashboard">
+
+                    <div class="stock-bajo-modal-header">
+                        <div>
+                            <span class="eyebrow-dashboard">Reposicion necesaria</span>
+                            <h2 id="tituloStockBajoDashboard">Inventario con stock bajo</h2>
+                            <p>Hilos con pocas unidades y pelones por debajo del 25%.</p>
+                        </div>
+
+                        <button type="button" class="cerrar-modal" onclick="cerrarModalStockBajoDashboard()" aria-label="Cerrar">
+                            <i class="ri-close-line"></i>
+                        </button>
+                    </div>
+
+                    <div class="stock-bajo-modal-seccion">
+                        <h3>Hilos</h3>
+                        <div class="tabla-contenedor">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Codigo</th>
+                                        <th>Color</th>
+                                        <th>Marca</th>
+                                        <th>Stock</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="tablaModalHilosBajosDashboard"></tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <div class="stock-bajo-modal-seccion">
+                        <h3>Pelones por comprar</h3>
+                        <div class="tabla-contenedor">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Tipo de pelon</th>
+                                        <th>Porcentaje restante</th>
+                                        <th>Rollos gigantes</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="tablaModalPelonesBajosDashboard"></tbody>
+                            </table>
+                        </div>
+                    </div>
 
                 </div>
 
@@ -268,7 +313,7 @@
     <script src="js/supabase-admin.js"></script>
     <script src="js/secure-admin-session.js"></script>
     <script src="js/api-guard.js"></script>
-    <script src="js/dashboard.js?v=proveedores1"></script>
+    <script src="js/dashboard.js?v=stockbajo2"></script>
 
 </body>
 

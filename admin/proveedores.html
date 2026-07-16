@@ -67,7 +67,7 @@
 
                 <a href="pelones.html">
                     <i class="ri-stack-line"></i>
-                    Pelones
+                    Inventario Pelones
                 </a>
 
                 <a href="calcupelones.html">
@@ -110,8 +110,8 @@
 
                 <div class="tarjeta">
                     <div>
-                        <h3>Proveedores activos</h3>
-                        <p id="proveedoresActivos">0</p>
+                        <h3>Proveedores registrados</h3>
+                        <p id="proveedoresRegistrados">0</p>
                     </div>
                     <i class="ri-store-2-line"></i>
                 </div>
@@ -130,14 +130,6 @@
                         <p id="pelonesRelacionados">0</p>
                     </div>
                     <i class="ri-stack-line"></i>
-                </div>
-
-                <div class="tarjeta alerta">
-                    <div>
-                        <h3>Inactivos</h3>
-                        <p id="proveedoresInactivos">0</p>
-                    </div>
-                    <i class="ri-pause-circle-line"></i>
                 </div>
 
             </section>
@@ -171,14 +163,6 @@
                         <input type="text" id="telefonoProveedor" placeholder="Ejemplo: 987654321">
                     </div>
 
-                    <div class="grupo-formulario">
-                        <label>Estado</label>
-                        <select id="estadoProveedor">
-                            <option value="true">Activo</option>
-                            <option value="false">Inactivo</option>
-                        </select>
-                    </div>
-
                     <div class="grupo-formulario ancho-completo">
                         <label>Observacion</label>
                         <textarea id="observacionProveedor" rows="3" placeholder="Detalle opcional de contacto, zona o condiciones de compra"></textarea>
@@ -206,7 +190,7 @@
 
                 <div class="titulo-seccion">
                     <h2>Lista de Proveedores</h2>
-                    <p>Busca por codigo, tienda, direccion, telefono o estado</p>
+                    <p>Busca por codigo, tienda, direccion, telefono o uso relacionado</p>
                 </div>
 
                 <div class="buscador-contenedor">
@@ -225,14 +209,13 @@
                                 <th>Direccion</th>
                                 <th>Telefono</th>
                                 <th>Uso</th>
-                                <th>Estado</th>
                                 <th>Acciones</th>
                             </tr>
                         </thead>
 
                         <tbody id="tablaProveedores">
                             <tr>
-                                <td colspan="7">Cargando proveedores...</td>
+                                <td colspan="6">Cargando proveedores...</td>
                             </tr>
                         </tbody>
 
@@ -251,7 +234,7 @@
     <script src="js/supabase-admin.js"></script>
     <script src="js/secure-admin-session.js"></script>
     <script src="js/api-guard.js"></script>
-    <script src="js/proveedores.js?v=proveedores1"></script>
+    <script src="js/proveedores.js?v=proveedores2"></script>
 
 </body>
 

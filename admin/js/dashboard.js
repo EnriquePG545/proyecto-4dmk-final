@@ -1,12 +1,14 @@
-const dashHilosStockBajo = document.getElementById("dashHilosStockBajo");
-const dashProveedoresActivos = document.getElementById("dashProveedoresActivos");
+const dashStockBajoTotal = document.getElementById("dashStockBajoTotal");
+const dashProveedoresRegistrados = document.getElementById("dashProveedoresRegistrados");
 const dashGastoMes = document.getElementById("dashGastoMes");
-const dashPelonesPromedio = document.getElementById("dashPelonesPromedio");
 
 const periodoGastoDashboard = document.getElementById("periodoGastoDashboard");
 const fechaInicioDashboard = document.getElementById("fechaInicioDashboard");
 const fechaFinDashboard = document.getElementById("fechaFinDashboard");
 const tablaDashboardHilosBajos = document.getElementById("tablaDashboardHilosBajos");
+const modalStockBajoDashboard = document.getElementById("modalStockBajoDashboard");
+const tablaModalHilosBajosDashboard = document.getElementById("tablaModalHilosBajosDashboard");
+const tablaModalPelonesBajosDashboard = document.getElementById("tablaModalPelonesBajosDashboard");
 
 let dashboardHilos = [];
 let dashboardProveedores = [];
@@ -58,7 +60,7 @@ async function cargarDatosDashboard() {
             .order("stock", { ascending: true }),
         supabaseClient
             .from("proveedores")
-            .select("*")
+            .select("codigo_tienda, nombre_tienda")
             .order("nombre_tienda", { ascending: true }),
         supabaseClient
             .from("compras_hilos")
@@ -91,7 +93,7 @@ async function cargarDatosDashboard() {
     dashboardHilos = hilosRes.data || [];
     dashboardProveedores = proveedoresRes.data || [];
     dashboardCompras = comprasRes.data || [];
-    dashboardPelones = pelonesRes.data || [];
+    dashboardPelones = dashboardPelonesNormalizados(pelonesRes.data || []);
 
     renderizarDashboard();
 }
@@ -104,22 +106,19 @@ function renderizarDashboard() {
     renderizarGraficoStock();
     renderizarGraficoPelones();
     mostrarTablaHilosBajosDashboard();
+    mostrarDetalleStockBajoDashboard();
 }
 
 function actualizarTarjetasDashboard() {
-    const hilosBajos = dashboardHilos.filter(hilo => Number(hilo.stock || 0) <= umbralDashboardHilos);
-    const proveedoresActivos = dashboardProveedores.filter(proveedor => proveedor.activo).length;
-    const gastoMes = dashboardCompras
-        .filter(compra => String(compra.fecha_compra || "").slice(0, 7) === obtenerFechaActualDashboard().slice(0, 7))
-        .reduce((total, compra) => total + Number(compra.total_compra || 0), 0);
-    const promedioPelones = dashboardPelones.length === 0
-        ? 0
-        : Math.round(dashboardPelones.reduce((total, pelon) => total + Number(pelon.porcentaje || 0), 0) / dashboardPelones.length);
+    const hilosBajos = obtenerHilosBajosDashboard();
+    const pelonesBajos = obtenerPelonesBajosDashboard();
+    const gastoMes = obtenerMovimientosGastoDashboard()
+        .filter(compra => obtenerFechaMovimientoGastoDashboard(compra).slice(0, 7) === obtenerFechaActualDashboard().slice(0, 7))
+        .reduce((total, compra) => total + obtenerMontoGastoDashboard(compra), 0);
 
-    dashHilosStockBajo.textContent = hilosBajos.length;
-    dashProveedoresActivos.textContent = proveedoresActivos;
+    dashStockBajoTotal.textContent = hilosBajos.length + pelonesBajos.length;
+    dashProveedoresRegistrados.textContent = dashboardProveedores.length;
     dashGastoMes.textContent = formatearDineroDashboard(gastoMes);
-    dashPelonesPromedio.textContent = `${promedioPelones}%`;
 }
 
 function renderizarGraficoPrefijos() {
@@ -172,22 +171,32 @@ function renderizarGraficoMarcas() {
 }
 
 function renderizarGraficoGasto() {
-    const comprasFiltradas = obtenerComprasFiltradasDashboard();
+    const comprasFiltradas = obtenerMovimientosGastoDashboard().filter(function (compra) {
+        const fecha = obtenerFechaMovimientoGastoDashboard(compra);
+        const inicio = fechaInicioDashboard.value;
+        const fin = fechaFinDashboard.value;
+
+        return (!inicio || fecha >= inicio) && (!fin || fecha <= fin);
+    });
     const agrupado = new Map();
 
     comprasFiltradas.forEach(function (compra) {
-        const clave = obtenerClavePeriodoDashboard(compra.fecha_compra, periodoGastoDashboard.value);
-        agrupado.set(clave, (agrupado.get(clave) || 0) + Number(compra.total_compra || 0));
+        const clave = obtenerClavePeriodoDashboard(obtenerFechaMovimientoGastoDashboard(compra), periodoGastoDashboard.value);
+        agrupado.set(clave, (agrupado.get(clave) || 0) + obtenerMontoGastoDashboard(compra));
     });
 
-    const labels = Array.from(agrupado.keys()).sort();
+    let labels = Array.from(agrupado.keys()).sort();
+
+    if (labels.length === 0) {
+        labels = ["Sin registros"];
+    }
 
     crearGrafico("chartGastoHilos", {
         type: "line",
         data: {
             labels,
             datasets: [{
-                label: "Gasto en hilos",
+                label: "Gasto registrado",
                 data: labels.map(label => Number(agrupado.get(label) || 0)),
                 borderColor: "#166534",
                 backgroundColor: "rgba(34,197,94,0.18)",
@@ -239,7 +248,7 @@ function renderizarGraficoPelones() {
         data: {
             labels: pelonesOrdenados.map(pelon => pelon.tipo_pelon),
             datasets: [{
-                label: "Disponibilidad",
+                label: "Porcentaje restante",
                 data: pelonesOrdenados.map(pelon => Number(pelon.porcentaje || 0)),
                 backgroundColor: pelonesOrdenados.map(pelon => obtenerColorPelonDashboard(Number(pelon.porcentaje || 0)))
             }]
@@ -266,15 +275,14 @@ function renderizarGraficoPelones() {
 }
 
 function mostrarTablaHilosBajosDashboard() {
-    const hilosBajos = dashboardHilos
-        .filter(hilo => Number(hilo.stock || 0) <= umbralDashboardHilos)
+    const hilosBajos = obtenerHilosBajosDashboard()
         .sort((a, b) => Number(a.stock || 0) - Number(b.stock || 0))
         .slice(0, 8);
 
     if (hilosBajos.length === 0) {
         tablaDashboardHilosBajos.innerHTML = `
             <tr>
-                <td colspan="5">No hay hilos con stock bajo.</td>
+                <td colspan="4">No hay hilos con stock bajo.</td>
             </tr>
         `;
         return;
@@ -284,17 +292,95 @@ function mostrarTablaHilosBajosDashboard() {
 
     hilosBajos.forEach(function (hilo) {
         const fila = document.createElement("tr");
-        const proveedor = hilo.proveedores?.nombre_tienda || "Sin proveedor";
 
         fila.innerHTML = `
             <td><strong>${textoSeguroDashboard(hilo.codigo_hilo)}</strong></td>
             <td>${textoSeguroDashboard(hilo.nombre_color)}</td>
             <td><span class="marca-hilo">${textoSeguroDashboard(hilo.marca)}</span></td>
             <td><span class="stock-hilo stock-hilo-bajo">${Number(hilo.stock || 0)}</span></td>
-            <td>${textoSeguroDashboard(proveedor)}</td>
         `;
 
         tablaDashboardHilosBajos.appendChild(fila);
+    });
+}
+
+function mostrarDetalleStockBajoDashboard() {
+    const hilosBajos = obtenerHilosBajosDashboard()
+        .sort((a, b) => Number(a.stock || 0) - Number(b.stock || 0));
+    const pelonesBajos = obtenerPelonesBajosDashboard();
+
+    if (hilosBajos.length === 0) {
+        tablaModalHilosBajosDashboard.innerHTML = '<tr><td colspan="4">No hay hilos por reponer.</td></tr>';
+    } else {
+        tablaModalHilosBajosDashboard.innerHTML = hilosBajos.map(function (hilo) {
+            return `
+                <tr>
+                    <td><strong>${textoSeguroDashboard(hilo.codigo_hilo)}</strong></td>
+                    <td>${textoSeguroDashboard(hilo.nombre_color)}</td>
+                    <td>${textoSeguroDashboard(hilo.marca)}</td>
+                    <td><span class="stock-hilo stock-hilo-bajo">${Number(hilo.stock || 0)}</span></td>
+                </tr>
+            `;
+        }).join("");
+    }
+
+    if (pelonesBajos.length === 0) {
+        tablaModalPelonesBajosDashboard.innerHTML = '<tr><td colspan="3">No hay pelones por debajo del 25%.</td></tr>';
+    } else {
+        tablaModalPelonesBajosDashboard.innerHTML = pelonesBajos.map(function (pelon) {
+            return `
+                <tr>
+                    <td><strong>${textoSeguroDashboard(pelon.tipo_pelon)}</strong></td>
+                    <td><span class="stock-pelon-bajo">${Number(pelon.porcentaje || 0)}%</span></td>
+                    <td>${Number(pelon.rollos_gigantes || 0)}</td>
+                </tr>
+            `;
+        }).join("");
+    }
+}
+
+function abrirModalStockBajoDashboard() {
+    mostrarDetalleStockBajoDashboard();
+    modalStockBajoDashboard.hidden = false;
+    modalStockBajoDashboard.setAttribute("aria-hidden", "false");
+    document.body.classList.add("modal-abierto");
+}
+
+function cerrarModalStockBajoDashboard() {
+    modalStockBajoDashboard.hidden = true;
+    modalStockBajoDashboard.setAttribute("aria-hidden", "true");
+    document.body.classList.remove("modal-abierto");
+}
+
+window.abrirModalStockBajoDashboard = abrirModalStockBajoDashboard;
+window.cerrarModalStockBajoDashboard = cerrarModalStockBajoDashboard;
+
+modalStockBajoDashboard.addEventListener("click", function (event) {
+    if (event.target === modalStockBajoDashboard) {
+        cerrarModalStockBajoDashboard();
+    }
+});
+
+document.addEventListener("keydown", function (event) {
+    if (event.key === "Escape" && !modalStockBajoDashboard.hidden) {
+        cerrarModalStockBajoDashboard();
+    }
+});
+
+function obtenerHilosBajosDashboard() {
+    return dashboardHilos.filter(hilo => Number(hilo.stock || 0) <= umbralDashboardHilos);
+}
+
+function obtenerPelonesBajosDashboard() {
+    return dashboardPelones.filter(pelon => Number(pelon.porcentaje || 0) < 25);
+}
+
+function dashboardPelonesNormalizados(lista) {
+    return lista.map(function (pelon) {
+        return {
+            ...pelon,
+            porcentaje: Math.max(0, Math.min(100, Math.round(Number(pelon.porcentaje || 0))))
+        };
     });
 }
 
@@ -353,17 +439,38 @@ function opcionesBaseDashboard(esDinero) {
     };
 }
 
-function obtenerComprasFiltradasDashboard() {
-    const inicio = fechaInicioDashboard.value;
-    const fin = fechaFinDashboard.value;
+function obtenerMovimientosGastoDashboard() {
+    const idsConCompra = new Set(
+        dashboardCompras
+            .map(compra => compra.id_hilo)
+            .filter(idHilo => idHilo !== null && idHilo !== undefined)
+            .map(idHilo => String(idHilo))
+    );
+    const valoresSinHistorial = dashboardHilos
+        .filter(hilo => Number(hilo.precio_compra || 0) > 0 && !idsConCompra.has(String(hilo.id_hilo)))
+        .map(function (hilo) {
+            return {
+                fecha_compra: hilo.fecha_compra || hilo.updated_at || hilo.created_at,
+                total_compra: Number(hilo.precio_compra || 0) * Number(hilo.stock || 0),
+                origen: "Valor registrado del inventario"
+            };
+        });
 
-    return dashboardCompras.filter(function (compra) {
-        const fecha = String(compra.fecha_compra || "").slice(0, 10);
-        const cumpleInicio = !inicio || fecha >= inicio;
-        const cumpleFin = !fin || fecha <= fin;
+    return [...dashboardCompras, ...valoresSinHistorial];
+}
 
-        return cumpleInicio && cumpleFin;
-    });
+function obtenerFechaMovimientoGastoDashboard(compra) {
+    return String(compra.fecha_compra || compra.created_at || "").slice(0, 10);
+}
+
+function obtenerMontoGastoDashboard(compra) {
+    const total = Number(compra.total_compra);
+
+    if (Number.isFinite(total)) {
+        return total;
+    }
+
+    return Number(compra.cantidad || 0) * Number(compra.precio_unitario || 0);
 }
 
 function obtenerClavePeriodoDashboard(fecha, periodo) {

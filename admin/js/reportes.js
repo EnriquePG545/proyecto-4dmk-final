@@ -12,11 +12,15 @@ const descripcionReporte = document.getElementById("descripcionReporte");
 const encabezadoReporte = document.getElementById("encabezadoReporte");
 const tablaReporte = document.getElementById("tablaReporte");
 const tablaStockBajoReporte = document.getElementById("tablaStockBajoReporte");
+const tablaInventarioBajoReporte = document.getElementById("tablaInventarioBajoReporte");
 
 let reporteActual = "";
 let ventasReporte = [];
 let productosReporte = [];
 let metodosPagoReporte = [];
+let inventarioHilosReporte = [];
+let inventarioPelonesReporte = [];
+let comprasHilosReporte = [];
 let umbralStockReporte = 5;
 
 iniciarReportes();
@@ -32,10 +36,11 @@ async function iniciarReportes() {
     cargarMetodosPagoReporte();
     cargarResumenReporte();
     mostrarProductosStockBajo();
+    mostrarInventarioBajoReporte();
 }
 
 async function cargarDatosBaseReporte() {
-    const [configRes, metodosRes, productosRes, ventasRes] = await Promise.all([
+    const [configRes, metodosRes, productosRes, ventasRes, hilosRes, pelonesRes, comprasHilosRes] = await Promise.all([
         supabaseClient
             .from("sistema_configuracion")
             .select("clave, valor")
@@ -65,10 +70,28 @@ async function cargarDatosBaseReporte() {
                 )
             `)
             .eq("anulada", false)
-            .order("fecha_venta", { ascending: false })
+            .order("fecha_venta", { ascending: false }),
+        supabaseClient
+            .from("inventario_hilos")
+            .select("*")
+            .order("codigo_hilo", { ascending: true }),
+        supabaseClient
+            .from("pelones")
+            .select("*")
+            .order("tipo_pelon", { ascending: true }),
+        supabaseClient
+            .from("compras_hilos")
+            .select(`
+                *,
+                proveedores (
+                    codigo_tienda,
+                    nombre_tienda
+                )
+            `)
+            .order("fecha_compra", { ascending: false })
     ]);
 
-    const error = configRes.error || metodosRes.error || productosRes.error || ventasRes.error;
+    const error = configRes.error || metodosRes.error || productosRes.error || ventasRes.error || hilosRes.error || pelonesRes.error || comprasHilosRes.error;
 
     if (error) {
         console.error(error);
@@ -83,6 +106,9 @@ async function cargarDatosBaseReporte() {
     metodosPagoReporte = (metodosRes.data || []).map(mapearMetodoPago);
     productosReporte = productosRes.data || [];
     ventasReporte = (ventasRes.data || []).map(mapearVentaReporte);
+    inventarioHilosReporte = hilosRes.data || [];
+    inventarioPelonesReporte = ordenarPelonesReporte(pelonesRes.data || []);
+    comprasHilosReporte = comprasHilosRes.data || [];
 }
 
 function cargarMetodosPagoReporte() {
@@ -401,6 +427,184 @@ function mostrarProductosStockBajo() {
 
         tablaStockBajoReporte.appendChild(fila);
     });
+}
+
+function mostrarInventarioBajoReporte() {
+    if (!tablaInventarioBajoReporte) {
+        return;
+    }
+
+    const hilosBajos = inventarioHilosReporte
+        .filter(hilo => Number(hilo.stock || 0) <= umbralStockReporte)
+        .sort((a, b) => Number(a.stock || 0) - Number(b.stock || 0));
+    const pelonesBajos = inventarioPelonesReporte
+        .filter(pelon => Number(pelon.porcentaje || 0) < 25);
+
+    const filas = [
+        ...hilosBajos.map(hilo => ({
+            tipo: "Hilo",
+            nombre: hilo.codigo_hilo,
+            detalle: `${hilo.nombre_color || "-"} - ${hilo.marca || "-"}`,
+            stock: `${Number(hilo.stock || 0)} unidades`,
+            rollos: "-",
+            orden: 1,
+            valor: Number(hilo.stock || 0)
+        })),
+        ...pelonesBajos.map(pelon => ({
+            tipo: "Pelon",
+            nombre: pelon.tipo_pelon,
+            detalle: "Requiere revisar y programar compra",
+            stock: `${Number(pelon.porcentaje || 0)}% restante`,
+            rollos: Number(pelon.rollos_gigantes || 0),
+            orden: 2,
+            valor: Number(pelon.porcentaje || 0)
+        }))
+    ].sort((a, b) => a.orden - b.orden || a.valor - b.valor);
+
+    if (filas.length === 0) {
+        tablaInventarioBajoReporte.innerHTML = '<tr><td colspan="5">No hay inventario por debajo de los limites definidos.</td></tr>';
+        return;
+    }
+
+    tablaInventarioBajoReporte.innerHTML = filas.map(function (fila) {
+        return `
+            <tr>
+                <td><span class="marca-hilo">${textoSeguro(fila.tipo)}</span></td>
+                <td><strong>${textoSeguro(fila.nombre)}</strong></td>
+                <td>${textoSeguro(fila.detalle)}</td>
+                <td><span class="stock-hilo stock-hilo-bajo">${textoSeguro(fila.stock)}</span></td>
+                <td>${textoSeguro(fila.rollos)}</td>
+            </tr>
+        `;
+    }).join("");
+}
+
+function descargarInventarioHilos() {
+    descargarCSVReporte("4dmk-inventario-hilos.csv", [
+        "Codigo hilo",
+        "Color",
+        "Marca",
+        "Stock",
+        "Precio compra",
+        "Detalle",
+        "Ultima actualizacion"
+    ], inventarioHilosReporte.map(function (hilo) {
+        return [
+            hilo.codigo_hilo,
+            hilo.nombre_color,
+            hilo.marca,
+            hilo.stock,
+            Number(hilo.precio_compra || 0).toFixed(2),
+            hilo.detalle_compra || "",
+            formatearFechaSQL(hilo.updated_at)
+        ];
+    }));
+}
+
+function descargarInventarioPelones() {
+    descargarCSVReporte("4dmk-inventario-pelones.csv", [
+        "Tipo de pelon",
+        "Porcentaje restante",
+        "Rollos gigantes",
+        "Precio registrado",
+        "Proveedor relacionado",
+        "Detalle",
+        "Ultima actualizacion"
+    ], inventarioPelonesReporte.map(function (pelon) {
+        return [
+            pelon.tipo_pelon,
+            `${Number(pelon.porcentaje || 0)}%`,
+            pelon.rollos_gigantes || 0,
+            Number(pelon.precio_compra || 0).toFixed(2),
+            pelon.proveedores?.nombre_tienda || pelon.codigo_tienda || "",
+            pelon.detalle_compra || "",
+            formatearFechaSQL(pelon.updated_at)
+        ];
+    }));
+}
+
+function descargarGastosInventario() {
+    descargarCSVReporte("4dmk-gastos-compras-hilos.csv", [
+        "Fecha",
+        "Codigo hilo",
+        "Color",
+        "Proveedor",
+        "Cantidad",
+        "Precio unitario",
+        "Total compra",
+        "Detalle"
+    ], comprasHilosReporte.map(function (compra) {
+        const total = Number(compra.total_compra ?? (Number(compra.cantidad || 0) * Number(compra.precio_unitario || 0)));
+
+        return [
+            formatearFechaSQL(compra.fecha_compra),
+            compra.codigo_hilo_snapshot,
+            compra.nombre_color_snapshot,
+            compra.proveedores?.nombre_tienda || compra.codigo_tienda || "",
+            compra.cantidad,
+            Number(compra.precio_unitario || 0).toFixed(2),
+            total.toFixed(2),
+            compra.detalle_compra || ""
+        ];
+    }));
+}
+
+function descargarResumenInventario() {
+    const filasHilos = inventarioHilosReporte.map(function (hilo) {
+        const valorRegistrado = Number(hilo.stock || 0) * Number(hilo.precio_compra || 0);
+        return [
+            "Hilo",
+            hilo.codigo_hilo,
+            hilo.nombre_color,
+            hilo.stock,
+            Number(hilo.precio_compra || 0).toFixed(2),
+            valorRegistrado.toFixed(2)
+        ];
+    });
+    const filasPelones = inventarioPelonesReporte.map(function (pelon) {
+        const valorRegistrado = Number(pelon.rollos_gigantes || 0) * Number(pelon.precio_compra || 0);
+        return [
+            "Pelon",
+            pelon.tipo_pelon,
+            `${Number(pelon.porcentaje || 0)}% restante`,
+            pelon.rollos_gigantes || 0,
+            Number(pelon.precio_compra || 0).toFixed(2),
+            valorRegistrado.toFixed(2)
+        ];
+    });
+
+    descargarCSVReporte("4dmk-resumen-inventario.csv", [
+        "Tipo",
+        "Codigo o pelon",
+        "Detalle",
+        "Cantidad",
+        "Precio registrado",
+        "Valor registrado"
+    ], [...filasHilos, ...filasPelones]);
+}
+
+function descargarCSVReporte(nombre, encabezados, filas) {
+    const contenido = [encabezados, ...filas]
+        .map(fila => fila.map(valor => escaparCSVReporte(valor)).join(","))
+        .join("\r\n");
+    const blob = new Blob(["\ufeff", contenido], { type: "text/csv;charset=utf-8;" });
+    const enlace = document.createElement("a");
+    enlace.href = URL.createObjectURL(blob);
+    enlace.download = nombre;
+    document.body.appendChild(enlace);
+    enlace.click();
+    enlace.remove();
+    URL.revokeObjectURL(enlace.href);
+}
+
+function escaparCSVReporte(valor) {
+    return `"${String(valor ?? "").replace(/"/g, '""')}"`;
+}
+
+function ordenarPelonesReporte(lista) {
+    const orden = ["Pelon Desgarrable", "Pelon Direccional", "Pelon Galleta"];
+
+    return [...lista].sort((a, b) => orden.indexOf(a.tipo_pelon) - orden.indexOf(b.tipo_pelon));
 }
 
 function sumarVentas(lista) {
